@@ -17,6 +17,7 @@ class ResourceBorrowRequest extends Model
         'resource_id',
         'user_id',
         'approved_by',
+        'approved_at',
         'borrower_name',
         'contact_number',
         'email',
@@ -28,12 +29,23 @@ class ResourceBorrowRequest extends Model
         'purpose',
         'intended_use',
         'notes',
+        'rejection_reason',
+        'cancelled_by',
+        'cancelled_at',
+        'checked_out_at',
+        'checked_out_by',
+        'returned_at',
+        'returned_by',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'actual_return_date' => 'datetime',
+        'approved_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'checked_out_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
 
     protected static function booted()

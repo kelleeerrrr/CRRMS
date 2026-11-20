@@ -11,6 +11,18 @@
             <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                 Back to My Requests
             </a>
+            @if($reservation->facility->owner && $reservation->facility->owner->id !== auth()->id())
+                <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="resource_type" value="facility">
+                    <input type="hidden" name="resource_id" value="{{ $reservation->facility->id }}">
+                    <input type="hidden" name="transaction_id" value="{{ $reservation->id }}">
+                    <input type="hidden" name="transaction_type" value="facility_reservation">
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Chat with Owner
+                    </button>
+                </form>
+            @endif
             @if(auth()->user()->can('update', $reservation) && $reservation->status === 'pending')
                 <a href="{{ route('facilities.reservations.edit', $reservation) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Edit

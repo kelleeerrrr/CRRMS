@@ -10,7 +10,7 @@ window.ApexCharts = ApexCharts;
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY ?? 'laravel-reverb-key',
-    wsHost: import.meta.env.VITE_REVERB_HOST ?? window.location.hostname,
+    wsHost: import.meta.env.VITE_REVERB_HOST ?? '127.0.0.1',
     wsPort: import.meta.env.VITE_REVERB_PORT ?? 8081,
     wssPort: import.meta.env.VITE_REVERB_PORT ?? 8081,
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',

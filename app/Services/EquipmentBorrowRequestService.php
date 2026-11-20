@@ -53,6 +53,33 @@ class EquipmentBorrowRequestService
                 Log::error('QR code generation failed', ['error' => $e->getMessage()]);
             }
 
+            // Send notification to admins/school officers (skip if fails)
+            try {
+                $admins = User::whereHas('roles', function($query) {
+                    $query->where('name', 'super_admin')
+                        ->orWhere('name', 'admin')
+                        ->orWhere('name', 'school_officer')
+                        ->orWhere('name', 'equipment_office')
+                        ->orWhere('name', 'property_custodian');
+                })->get();
+                
+                foreach ($admins as $admin) {
+                    app(\App\Services\NotificationService::class)->createNotification([
+                        'user_id' => $admin->id,
+                        'type' => 'equipment_borrow_request_created',
+                        'title' => 'New Equipment Borrow Request',
+                        'message' => "A new equipment borrow request has been submitted by {$user->name}.",
+                        'data' => [
+                            'request_id' => $request->id,
+                            'user_id' => $user->id,
+                            'purpose' => $request->purpose,
+                        ],
+                    ], $user);
+                }
+            } catch (\Exception $e) {
+                Log::error('Notification sending failed', ['error' => $e->getMessage()]);
+            }
+
             Log::info('Equipment borrow request created', [
                 'request_id' => $request->id,
                 'user_id' => $user->id,
@@ -101,6 +128,22 @@ class EquipmentBorrowRequestService
                 'approved_at' => now(),
             ]);
 
+            // Send notification to the requester
+            try {
+                app(\App\Services\NotificationService::class)->createNotification([
+                    'user_id' => $request->user_id,
+                    'type' => 'equipment_borrow_request_approved',
+                    'title' => 'Equipment Borrow Request Approved',
+                    'message' => "Your equipment borrow request has been approved.",
+                    'data' => [
+                        'request_id' => $request->id,
+                        'purpose' => $request->purpose,
+                    ],
+                ], $approver);
+            } catch (\Exception $e) {
+                Log::error('Notification failed', ['error' => $e->getMessage()]);
+            }
+
             // Broadcast status change
             try {
                 broadcast(new EquipmentBorrowRequestStatusChanged($request->fresh()));
@@ -126,6 +169,22 @@ class EquipmentBorrowRequestService
                 'approved_at' => now(),
                 'rejection_reason' => $reason,
             ]);
+
+            // Send notification to the requester
+            try {
+                app(\App\Services\NotificationService::class)->createNotification([
+                    'user_id' => $request->user_id,
+                    'type' => 'equipment_borrow_request_rejected',
+                    'title' => 'Equipment Borrow Request Rejected',
+                    'message' => "Your equipment borrow request has been rejected.",
+                    'data' => [
+                        'request_id' => $request->id,
+                        'rejection_reason' => $reason,
+                    ],
+                ], $approver);
+            } catch (\Exception $e) {
+                Log::error('Notification failed', ['error' => $e->getMessage()]);
+            }
 
             // No need to release equipment since pending requests don't reserve quantity
 

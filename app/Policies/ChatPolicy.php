@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Chat;
+use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -19,9 +19,9 @@ class ChatPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Chat $chat): bool
+    public function view(User $user, Conversation $conversation): bool
     {
-        return $chat->participants()->where('user_id', $user->id)->exists();
+        return $conversation->participants()->where('user_id', $user->id)->exists();
     }
 
     /**
@@ -35,44 +35,44 @@ class ChatPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Chat $chat): bool
+    public function update(User $user, Conversation $conversation): bool
     {
         // Only group chat creators or admins can update
-        if ($chat->type === 'private') {
+        if ($conversation->type === 'private') {
             return false;
         }
 
-        return $chat->participants()
+        return $conversation->participants()
             ->where('user_id', $user->id)
-            ->where('is_admin', true)
+            ->where('role', 'admin')
             ->exists();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Chat $chat): bool
+    public function delete(User $user, Conversation $conversation): bool
     {
         // Only group chat creators can delete
-        if ($chat->type === 'private') {
+        if ($conversation->type === 'private') {
             return false;
         }
 
-        return $chat->created_by === $user->id;
+        return $conversation->created_by === $user->id;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Chat $chat): bool
+    public function restore(User $user, Conversation $conversation): bool
     {
-        return $chat->created_by === $user->id;
+        return $conversation->created_by === $user->id;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Chat $chat): bool
+    public function forceDelete(User $user, Conversation $conversation): bool
     {
         return $user->can('super-admin');
     }

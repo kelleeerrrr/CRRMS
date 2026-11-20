@@ -3,44 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResourceBorrowRequest;
+use App\Services\ResourceBorrowRequestService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ResourceRequestController extends Controller
 {
+    protected ResourceBorrowRequestService $borrowRequestService;
+
+    public function __construct(ResourceBorrowRequestService $borrowRequestService)
+    {
+        $this->borrowRequestService = $borrowRequestService;
+    }
+
     public function index(Request $request): View
     {
         $search = $request->input('search');
         $status = $request->input('status');
 
-        $query = ResourceBorrowRequest::with(['resource', 'user']);
-
+        $filters = [];
         if ($search) {
-            $query->whereHas('resource', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            })->orWhereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            });
+            $filters['search'] = $search;
         }
-
         if ($status) {
-            $query->where('status', $status);
+            $filters['status'] = $status;
         }
 
-        $requests = $query->orderBy('created_at', 'desc')->paginate(12);
+        $requests = $this->borrowRequestService->getAllBorrowRequests($filters);
 
         return view('resource-requests.index', compact('requests', 'search', 'status'));
     }
 
     public function approve(ResourceBorrowRequest $request)
     {
-        $request->update(['status' => 'approved']);
-        return back()->with('success', 'Resource request approved successfully.');
+        try {
+            $this->borrowRequestService->approveBorrowRequest($request, auth()->user());
+            return back()->with('success', 'Resource request approved successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
-    public function decline(ResourceBorrowRequest $request)
+    public function decline(Request $httpRequest, ResourceBorrowRequest $request)
     {
-        $request->update(['status' => 'rejected']);
-        return back()->with('success', 'Resource request declined successfully.');
+        try {
+            $reason = $httpRequest->input('reason');
+            $this->borrowRequestService->rejectBorrowRequest($request, auth()->user(), $reason);
+            return back()->with('success', 'Resource request declined successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

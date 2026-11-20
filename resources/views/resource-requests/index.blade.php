@@ -102,12 +102,9 @@
                                                     Approve
                                                 </button>
                                             </form>
-                                            <form method="POST" action="{{ route('resource-requests.decline', $request) }}" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm">
-                                                    Reject
-                                                </button>
-                                            </form>
+                                            <button onclick="showDeclineModal('{{ $request->id }}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm ml-2">
+                                                Reject
+                                            </button>
                                         @endif
                                     </div>
                                 </td>
@@ -130,4 +127,41 @@
             </div>
         </x-card>
     @endif
+
+    <!-- Decline Modal -->
+    <div id="declineModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Decline Borrow Request</h3>
+            <form method="POST" action="" id="declineForm">
+                @csrf
+                <input type="hidden" name="request_id" id="declineRequestId">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Rejection (Optional)</label>
+                    <textarea name="reason" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white" placeholder="Provide a reason for declining this request..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="hideDeclineModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Decline Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showDeclineModal(requestId) {
+            document.getElementById('declineModal').classList.remove('hidden');
+            document.getElementById('declineModal').classList.add('flex');
+            document.getElementById('declineRequestId').value = requestId;
+            document.getElementById('declineForm').action = '/resource-requests/' + requestId + '/decline';
+        }
+
+        function hideDeclineModal() {
+            document.getElementById('declineModal').classList.add('hidden');
+            document.getElementById('declineModal').classList.remove('flex');
+        }
+    </script>
 </x-app-layout>

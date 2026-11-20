@@ -107,7 +107,7 @@
                         @endif
                     </div>
 
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
                         @if(auth()->user()->roles()->first()?->name === 'school_officer')
                             <a href="#" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                 Edit
@@ -122,6 +122,16 @@
                                     Not Available
                                 </span>
                             @endif
+                        @endif
+                        @if(auth()->user()->roles()->first()?->name !== 'school_officer')
+                            <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
+                                @csrf
+                                <input type="hidden" name="resource_type" value="equipment">
+                                <input type="hidden" name="resource_id" value="{{ $item->id }}">
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                    Chat
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </x-card>

@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Chat;
-use App\Models\ChatMessage;
+use App\Events\MessageSent;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -11,41 +12,85 @@ use Illuminate\Support\Str;
 
 class ChatService
 {
-    public function createPrivateChat(array $data, User $user): Chat
+    public function createPrivateChat(array $data, User $user): Conversation
     {
         return DB::transaction(function () use ($data, $user) {
-            $chat = Chat::create([
+            $conversation = Conversation::create([
                 'id' => Str::uuid(),
                 'type' => 'private',
                 'name' => null,
                 'created_by' => $user->id,
+                'resource_type' => $data['resource_type'] ?? null,
+                'resource_id' => $data['resource_id'] ?? null,
+                'transaction_id' => $data['transaction_id'] ?? null,
+                'transaction_type' => $data['transaction_type'] ?? null,
             ]);
 
             // Add participants
-            $chat->participants()->attach([$user->id, $data['participant_id']]);
+            $conversation->participants()->attach([
+                $user->id => ['id' => Str::uuid()],
+                $data['participant_id'] => ['id' => Str::uuid()],
+            ]);
 
             // Create initial message if provided
             if (isset($data['message'])) {
-                $this->sendMessage($chat, [
+                $this->sendMessage($conversation, [
                     'message' => $data['message'],
                     'sender_id' => $user->id,
                 ]);
             }
 
             Log::info('Private chat created', [
-                'chat_id' => $chat->id,
+                'conversation_id' => $conversation->id,
                 'creator_id' => $user->id,
                 'participant_id' => $data['participant_id'],
+                'resource_type' => $data['resource_type'] ?? null,
+                'resource_id' => $data['resource_id'] ?? null,
             ]);
 
-            return $chat;
+            return $conversation;
         });
     }
 
-    public function createGroupChat(array $data, User $user): Chat
+    public function findOrCreateResourceChat(string $resourceType, string $resourceId, User $user, User $owner, ?string $transactionId = null, ?string $transactionType = null): Conversation
+    {
+        // Check if conversation already exists for this resource and participants
+        $existingConversation = Conversation::where('resource_type', $resourceType)
+            ->where('resource_id', $resourceId)
+            ->whereHas('participants', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->whereHas('participants', function ($q) use ($owner) {
+                $q->where('user_id', $owner->id);
+            })
+            ->where('type', 'private')
+            ->first();
+
+        if ($existingConversation) {
+            // Update transaction if provided and different
+            if ($transactionId && $transactionType && (!$existingConversation->transaction_id || $existingConversation->transaction_id !== $transactionId)) {
+                $existingConversation->update([
+                    'transaction_id' => $transactionId,
+                    'transaction_type' => $transactionType,
+                ]);
+            }
+            return $existingConversation;
+        }
+
+        // Create new conversation
+        return $this->createPrivateChat([
+            'participant_id' => $owner->id,
+            'resource_type' => $resourceType,
+            'resource_id' => $resourceId,
+            'transaction_id' => $transactionId,
+            'transaction_type' => $transactionType,
+        ], $user);
+    }
+
+    public function createGroupChat(array $data, User $user): Conversation
     {
         return DB::transaction(function () use ($data, $user) {
-            $chat = Chat::create([
+            $conversation = Conversation::create([
                 'id' => Str::uuid(),
                 'type' => 'group',
                 'name' => $data['name'],
@@ -54,63 +99,76 @@ class ChatService
             ]);
 
             // Add creator as admin
-            $chat->participants()->attach($user->id, ['is_admin' => true]);
+            $conversation->participants()->attach($user->id, ['id' => Str::uuid(), 'role' => 'admin']);
 
             // Add other participants
             if (isset($data['participants'])) {
                 foreach ($data['participants'] as $participantId) {
-                    $chat->participants()->attach($participantId);
+                    $conversation->participants()->attach($participantId, ['id' => Str::uuid()]);
                 }
             }
 
             // Create initial message if provided
             if (isset($data['message'])) {
-                $this->sendMessage($chat, [
+                $this->sendMessage($conversation, [
                     'message' => $data['message'],
                     'sender_id' => $user->id,
                 ]);
             }
 
             Log::info('Group chat created', [
-                'chat_id' => $chat->id,
+                'conversation_id' => $conversation->id,
                 'creator_id' => $user->id,
                 'participants_count' => count($data['participants'] ?? []) + 1,
             ]);
 
-            return $chat;
+            return $conversation;
         });
     }
 
-    public function sendMessage(Chat $chat, array $data): ChatMessage
+    public function sendMessage(Conversation $conversation, array $data): Message
     {
-        return DB::transaction(function () use ($chat, $data) {
-            $message = ChatMessage::create([
+        return DB::transaction(function () use ($conversation, $data) {
+            $messageData = [
                 'id' => Str::uuid(),
-                'chat_id' => $chat->id,
+                'conversation_id' => $conversation->id,
                 'sender_id' => $data['sender_id'],
-                'message' => $data['message'],
                 'type' => $data['type'] ?? 'text',
-                'file_path' => $data['file_path'] ?? null,
-                'file_name' => $data['file_name'] ?? null,
-            ]);
+            ];
 
-            // Update last message in chat
-            $chat->update(['last_message_at' => now()]);
+            // Handle content from 'message' key (what controller sends)
+            if (isset($data['message'])) {
+                $messageData['content'] = $data['message'];
+            }
 
-            // Mark as seen by sender
-            $message->seenBy()->attach($data['sender_id']);
+            // Handle file attachments
+            if (isset($data['file_path'])) {
+                $messageData['file_path'] = $data['file_path'];
+                $messageData['file_name'] = $data['file_name'] ?? null;
+            }
+
+            $message = Message::create($messageData);
 
             Log::info('Message sent', [
                 'message_id' => $message->id,
-                'chat_id' => $chat->id,
+                'conversation_id' => $conversation->id,
                 'sender_id' => $data['sender_id'],
+                'content' => $message->content,
             ]);
+
+            // Broadcast the message - wrap in try-catch to prevent transaction rollback
+            try {
+                broadcast(new MessageSent($message));
+            } catch (\Exception $e) {
+                Log::error('Broadcast failed', ['error' => $e->getMessage()]);
+                // Don't throw - message is already saved
+            }
 
             return $message;
         });
     }
 
-    public function markAsSeen(ChatMessage $message, User $user): void
+    public function markAsSeen(Message $message, User $user): void
     {
         DB::transaction(function () use ($message, $user) {
             if (!$message->seenBy()->where('user_id', $user->id)->exists()) {
@@ -124,11 +182,26 @@ class ChatService
         });
     }
 
-    public function markTyping(Chat $chat, User $user, bool $isTyping): void
+    public function markConversationAsRead(Conversation $conversation, User $user): void
     {
-        // This would typically use Redis or broadcasting for real-time
-        // For now, we'll store in cache
-        $cacheKey = "chat:{$chat->id}:typing:{$user->id}";
+        DB::transaction(function () use ($conversation, $user) {
+            $participant = $conversation->participants()->where('user_id', $user->id)->first();
+            if ($participant) {
+                $conversation->participants()->updateExistingPivot($user->id, [
+                    'last_read_at' => now(),
+                ]);
+
+                Log::info('Conversation marked as read', [
+                    'conversation_id' => $conversation->id,
+                    'user_id' => $user->id,
+                ]);
+            }
+        });
+    }
+
+    public function markTyping(Conversation $conversation, User $user, bool $isTyping): void
+    {
+        $cacheKey = "conversation:{$conversation->id}:typing:{$user->id}";
         
         if ($isTyping) {
             cache()->put($cacheKey, true, now()->addSeconds(10));
@@ -137,12 +210,12 @@ class ChatService
         }
     }
 
-    public function getTypingUsers(Chat $chat): array
+    public function getTypingUsers(Conversation $conversation): array
     {
         $typingUsers = [];
         
-        foreach ($chat->participants as $participant) {
-            $cacheKey = "chat:{$chat->id}:typing:{$participant->id}";
+        foreach ($conversation->participants as $participant) {
+            $cacheKey = "conversation:{$conversation->id}:typing:{$participant->id}";
             if (cache()->has($cacheKey)) {
                 $typingUsers[] = $participant;
             }
@@ -151,21 +224,21 @@ class ChatService
         return $typingUsers;
     }
 
-    public function addParticipant(Chat $chat, User $user, User $addedBy): void
+    public function addParticipant(Conversation $conversation, User $user, User $addedBy): void
     {
-        DB::transaction(function () use ($chat, $user, $addedBy) {
-            if (!$chat->participants()->where('user_id', $user->id)->exists()) {
-                $chat->participants()->attach($user->id);
+        DB::transaction(function () use ($conversation, $user, $addedBy) {
+            if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
+                $conversation->participants()->attach($user->id, ['id' => Str::uuid()]);
 
                 // System message about new participant
-                $this->sendMessage($chat, [
+                $this->sendMessage($conversation, [
                     'message' => "{$addedBy->name} added {$user->name} to the chat",
                     'sender_id' => $addedBy->id,
                     'type' => 'system',
                 ]);
 
-                Log::info('Participant added to chat', [
-                    'chat_id' => $chat->id,
+                Log::info('Participant added to conversation', [
+                    'conversation_id' => $conversation->id,
                     'user_id' => $user->id,
                     'added_by' => $addedBy->id,
                 ]);
@@ -173,21 +246,21 @@ class ChatService
         });
     }
 
-    public function removeParticipant(Chat $chat, User $user, User $removedBy): void
+    public function removeParticipant(Conversation $conversation, User $user, User $removedBy): void
     {
-        DB::transaction(function () use ($chat, $user, $removedBy) {
-            if ($chat->participants()->where('user_id', $user->id)->exists()) {
-                $chat->participants()->detach($user->id);
+        DB::transaction(function () use ($conversation, $user, $removedBy) {
+            if ($conversation->participants()->where('user_id', $user->id)->exists()) {
+                $conversation->participants()->detach($user->id);
 
                 // System message about removed participant
-                $this->sendMessage($chat, [
+                $this->sendMessage($conversation, [
                     'message' => "{$removedBy->name} removed {$user->name} from the chat",
                     'sender_id' => $removedBy->id,
                     'type' => 'system',
                 ]);
 
-                Log::info('Participant removed from chat', [
-                    'chat_id' => $chat->id,
+                Log::info('Participant removed from conversation', [
+                    'conversation_id' => $conversation->id,
                     'user_id' => $user->id,
                     'removed_by' => $removedBy->id,
                 ]);
@@ -195,52 +268,61 @@ class ChatService
         });
     }
 
-    public function updateChat(Chat $chat, array $data): Chat
+    public function updateConversation(Conversation $conversation, array $data): Conversation
     {
-        return DB::transaction(function () use ($chat, $data) {
-            $chat->update($data);
+        return DB::transaction(function () use ($conversation, $data) {
+            $conversation->update($data);
 
-            Log::info('Chat updated', [
-                'chat_id' => $chat->id,
+            Log::info('Conversation updated', [
+                'conversation_id' => $conversation->id,
             ]);
 
-            return $chat->fresh();
+            return $conversation->fresh();
         });
     }
 
-    public function deleteChat(Chat $chat): bool
+    public function deleteConversation(Conversation $conversation): bool
     {
-        return DB::transaction(function () use ($chat) {
-            $chat->messages()->delete();
-            $chat->participants()->detach();
-            $chat->delete();
+        return DB::transaction(function () use ($conversation) {
+            $conversation->messages()->delete();
+            $conversation->participants()->detach();
+            $conversation->delete();
 
-            Log::info('Chat deleted', [
-                'chat_id' => $chat->id,
+            Log::info('Conversation deleted', [
+                'conversation_id' => $conversation->id,
             ]);
 
             return true;
         });
     }
 
-    public function getUserChats(User $user, $filters = [])
+    public function getUserConversations(User $user, $filters = [])
     {
-        $query = $chat = Chat::whereHas('participants', function ($q) use ($user) {
+        $query = Conversation::whereHas('participants', function ($q) use ($user) {
             $q->where('user_id', $user->id);
-        })->with(['participants', 'lastMessage', 'lastMessage.sender']);
+        })->with(['participants', 'messages' => function ($q) {
+            $q->latest()->limit(1);
+        }, 'facility', 'equipment', 'resource']);
 
         if (isset($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
-        return $query->orderBy('last_message_at', 'desc')->get();
+        $conversations = $query->latest()->get();
+
+        // Load participant pivot data for current user
+        foreach ($conversations as $conversation) {
+            $conversation->current_participant = $conversation->participants->where('id', $user->id)->first();
+        }
+
+        return $conversations;
     }
 
-    public function getChatMessages(Chat $chat, $limit = 50)
+    public function getConversationMessages(Conversation $conversation, $limit =  50)
     {
-        return $chat->messages()
-            ->with(['sender', 'seenBy'])
-            ->orderBy('created_at', 'desc')
+        return $conversation->messages()
+            ->with(['sender'])
+            ->latest()
             ->limit($limit)
             ->get()
             ->reverse();
@@ -248,15 +330,21 @@ class ChatService
 
     public function getUnreadMessageCount(User $user): int
     {
-        return ChatMessage::whereHas('chat', function ($q) use ($user) {
+        return Message::query()
+        ->whereHas('conversation', function ($q) use ($user) {
             $q->whereHas('participants', function ($subQ) use ($user) {
                 $subQ->where('user_id', $user->id);
             });
         })
         ->where('sender_id', '!=', $user->id)
-        ->whereDoesntHave('seenBy', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
+        ->whereHas('conversation.participants', function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->where(function ($subQ) {
+                  $subQ->whereNull('last_read_at')
+                        ->orWhere('last_read_at', '<', \DB::raw('messages.created_at'));
+              });
         })
-        ->count();
+        ->distinct('conversation_id')
+        ->count('conversation_id');
     }
 }

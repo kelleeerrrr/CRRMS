@@ -61,6 +61,7 @@ class FacilityReservationService
                 $admins = User::whereHas('roles', function($query) {
                     $query->where('name', 'super_admin')
                         ->orWhere('name', 'admin')
+                        ->orWhere('name', 'school_officer')
                         ->orWhere('name', 'facilities_office')
                         ->orWhere('name', 'property_custodian');
                 })->get();
@@ -70,11 +71,13 @@ class FacilityReservationService
                         'user_id' => $admin->id,
                         'type' => 'facility_reservation_created',
                         'title' => 'New Facility Reservation',
-                        'message' => "A new facility reservation has been created by {$user->name}.",
+                        'message' => "A new facility reservation has been submitted by {$user->name}.",
                         'data' => [
                             'reservation_id' => $reservation->id,
                             'facility_id' => $reservation->facility_id,
                             'user_id' => $user->id,
+                            'facility_name' => $reservation->facility->name,
+                            'title' => $reservation->title,
                         ],
                     ], $user);
                 }
@@ -128,10 +131,28 @@ class FacilityReservationService
             ]);
 
             // Send notification to the requester
-            $reservation->user->notify(new FacilityReservationApproved($reservation));
+            try {
+                $this->notificationService->createNotification([
+                    'user_id' => $reservation->user_id,
+                    'type' => 'facility_reservation_approved',
+                    'title' => 'Facility Reservation Approved',
+                    'message' => "Your facility reservation for {$reservation->facility->name} has been approved.",
+                    'data' => [
+                        'reservation_id' => $reservation->id,
+                        'facility_name' => $reservation->facility->name,
+                        'title' => $reservation->title,
+                    ],
+                ], $approver);
+            } catch (\Exception $e) {
+                Log::error('Notification failed', ['error' => $e->getMessage()]);
+            }
 
             // Broadcast status change
-            broadcast(new FacilityReservationStatusChanged($reservation->fresh()));
+            try {
+                broadcast(new FacilityReservationStatusChanged($reservation->fresh()));
+            } catch (\Exception $e) {
+                Log::error('Broadcast failed', ['error' => $e->getMessage()]);
+            }
 
             Log::info('Facility reservation approved', [
                 'reservation_id' => $reservation->id,
@@ -152,8 +173,30 @@ class FacilityReservationService
                 'rejection_reason' => $reason,
             ]);
 
+            // Send notification to the requester
+            try {
+                $this->notificationService->createNotification([
+                    'user_id' => $reservation->user_id,
+                    'type' => 'facility_reservation_rejected',
+                    'title' => 'Facility Reservation Rejected',
+                    'message' => "Your facility reservation for {$reservation->facility->name} has been rejected.",
+                    'data' => [
+                        'reservation_id' => $reservation->id,
+                        'facility_name' => $reservation->facility->name,
+                        'title' => $reservation->title,
+                        'rejection_reason' => $reason,
+                    ],
+                ], $approver);
+            } catch (\Exception $e) {
+                Log::error('Notification failed', ['error' => $e->getMessage()]);
+            }
+
             // Broadcast status change
-            broadcast(new FacilityReservationStatusChanged($reservation->fresh()));
+            try {
+                broadcast(new FacilityReservationStatusChanged($reservation->fresh()));
+            } catch (\Exception $e) {
+                Log::error('Broadcast failed', ['error' => $e->getMessage()]);
+            }
 
             Log::info('Facility reservation rejected', [
                 'reservation_id' => $reservation->id,

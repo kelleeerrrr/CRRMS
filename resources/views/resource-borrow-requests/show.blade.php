@@ -11,6 +11,18 @@
                 <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Back to My Requests
                 </a>
+                @if($request->resource->owner && $request->resource->owner->id !== auth()->id())
+                    <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="resource_type" value="resource">
+                        <input type="hidden" name="resource_id" value="{{ $request->resource->id }}">
+                        <input type="hidden" name="transaction_id" value="{{ $request->id }}">
+                        <input type="hidden" name="transaction_type" value="resource_borrow_request">
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            Chat with Owner
+                        </button>
+                    </form>
+                @endif
                 @if($request->user_id === auth()->id() && $request->status === 'pending')
                     <a href="{{ route('resource-borrow-requests.edit', $request) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                         Edit

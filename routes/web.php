@@ -160,15 +160,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
         Route::get('/create', [ChatController::class, 'create'])->name('create');
         Route::post('/', [ChatController::class, 'store'])->name('store');
-        Route::get('/{chat}', [ChatController::class, 'show'])->name('show');
-        Route::get('/{chat}/edit', [ChatController::class, 'edit'])->name('edit');
-        Route::put('/{chat}', [ChatController::class, 'update'])->name('update');
-        Route::delete('/{chat}', [ChatController::class, 'destroy'])->name('destroy');
-        Route::post('/{chat}/send-message', [ChatController::class, 'sendMessage'])->name('send-message');
+        Route::get('/{conversation}', [ChatController::class, 'show'])->name('show');
+        Route::get('/{conversation}/edit', [ChatController::class, 'edit'])->name('edit');
+        Route::put('/{conversation}', [ChatController::class, 'update'])->name('update');
+        Route::delete('/{conversation}', [ChatController::class, 'destroy'])->name('destroy');
+        Route::post('/{conversation}/send-message', [ChatController::class, 'sendMessage'])->name('send-message');
         Route::post('/messages/{message}/mark-seen', [ChatController::class, 'markAsSeen'])->name('mark-seen');
-        Route::post('/{chat}/typing', [ChatController::class, 'markTyping'])->name('typing');
-        Route::post('/{chat}/add-participant', [ChatController::class, 'addParticipant'])->name('add-participant');
-        Route::post('/{chat}/remove-participant', [ChatController::class, 'removeParticipant'])->name('remove-participant');
+        Route::post('/{conversation}/typing', [ChatController::class, 'markTyping'])->name('typing');
+        Route::post('/{conversation}/add-participant', [ChatController::class, 'addParticipant'])->name('add-participant');
+        Route::post('/{conversation}/remove-participant', [ChatController::class, 'removeParticipant'])->name('remove-participant');
+        Route::post('/chat-with-owner', [ChatController::class, 'chatWithOwner'])->name('with-owner');
     });
 
     // Notifications

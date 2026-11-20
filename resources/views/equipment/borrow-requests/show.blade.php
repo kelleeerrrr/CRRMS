@@ -11,12 +11,24 @@
                 <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Back to My Requests
                 </a>
-            @if(auth()->user()->can('update', $borrowRequest) && $borrowRequest->status === 'pending')
+                @if($borrowRequest->items->first()?->equipment->owner && $borrowRequest->items->first()->equipment->owner->id !== auth()->id())
+                    <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="resource_type" value="equipment">
+                        <input type="hidden" name="resource_id" value="{{ $borrowRequest->items->first()->equipment->id }}">
+                        <input type="hidden" name="transaction_id" value="{{ $borrowRequest->id }}">
+                        <input type="hidden" name="transaction_type" value="equipment_borrow_request">
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            Chat with Owner
+                        </button>
+                    </form>
+                @endif
+                @if(auth()->user()->can('update', $borrowRequest) && $borrowRequest->status === 'pending')
                 <a href="{{ route('equipment.borrow-requests.edit', $borrowRequest) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Edit
                 </a>
-            @endif
-            @if(auth()->user()->can('approve', $borrowRequest) && $borrowRequest->status === 'pending')
+                @endif
+                @if(auth()->user()->can('approve', $borrowRequest) && $borrowRequest->status === 'pending')
                 <form action="{{ route('equipment.borrow-requests.approve', $borrowRequest) }}" method="POST" class="inline">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">

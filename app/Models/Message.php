@@ -12,10 +12,13 @@ class Message extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'id',
         'conversation_id',
         'sender_id',
         'content',
         'type',
+        'file_path',
+        'file_name',
         'reply_to_id',
         'is_edited',
         'edited_at',

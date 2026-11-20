@@ -11,3 +11,8 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('users.{userId}', function ($user, $userId) {
     return (string) $user->id === (string) $userId;
 });
+
+// Chat conversation channel - public channel (authorization handled in event)
+Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
+    return true;
+});

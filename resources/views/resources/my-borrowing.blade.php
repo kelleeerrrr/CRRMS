@@ -93,4 +93,18 @@
             </div>
         @endif
     </x-card>
+
+    <script>
+        @if(auth()->check())
+            // Listen for resource borrowing status changes
+            if (typeof Echo !== 'undefined') {
+                Echo.private('users.{{ auth()->id() }}')
+                    .listen('.ResourceBorrowRequestStatusChanged', (e) => {
+                        console.log('Resource borrow request status changed:', e);
+                        // Reload the page to show updated status
+                        window.location.reload();
+                    });
+            }
+        @endif
+    </script>
 </x-app-layout>

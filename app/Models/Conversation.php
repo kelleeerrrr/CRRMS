@@ -13,12 +13,17 @@ class Conversation extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'id',
         'type',
         'name',
         'description',
         'avatar',
         'created_by',
         'is_pinned',
+        'resource_type',
+        'resource_id',
+        'transaction_id',
+        'transaction_type',
     ];
 
     protected $casts = [
@@ -33,12 +38,61 @@ class Conversation extends Model
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'conversation_participants')
-            ->withPivot('role', 'joined_at', 'last_read_at', 'is_muted', 'left_at')
-            ->withTimestamps();
+            ->withPivot('role', 'joined_at', 'last_read_at', 'is_muted', 'left_at');
     }
 
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function facility()
+    {
+        return $this->belongsTo(Facility::class, 'resource_id');
+    }
+
+    public function equipment()
+    {
+        return $this->belongsTo(Equipment::class, 'resource_id');
+    }
+
+    public function resource()
+    {
+        return $this->belongsTo(Resource::class, 'resource_id');
+    }
+
+    public function facilityReservation()
+    {
+        return $this->belongsTo(FacilityReservation::class, 'transaction_id');
+    }
+
+    public function equipmentBorrowRequest()
+    {
+        return $this->belongsTo(EquipmentBorrowRequest::class, 'transaction_id');
+    }
+
+    public function resourceBorrowRequest()
+    {
+        return $this->belongsTo(ResourceBorrowRequest::class, 'transaction_id');
+    }
+
+    public function getResourceAttribute()
+    {
+        return match($this->resource_type) {
+            'facility' => $this->facility,
+            'equipment' => $this->equipment,
+            'resource' => $this->resource,
+            default => null,
+        };
+    }
+
+    public function getTransactionAttribute()
+    {
+        return match($this->transaction_type) {
+            'facility_reservation' => $this->facilityReservation,
+            'equipment_borrow_request' => $this->equipmentBorrowRequest,
+            'resource_borrow_request' => $this->resourceBorrowRequest,
+            default => null,
+        };
     }
 }

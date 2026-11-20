@@ -2,10 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Models\Chat;
+use App\Models\Conversation;
 use App\Services\ChatService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 class ChatIndex extends Component
@@ -23,15 +24,19 @@ class ChatIndex extends Component
     #[Computed]
     public function chats()
     {
-        // Chat feature not yet implemented - models don't exist
-        return collect();
+        return $this->chatService->getUserConversations(Auth::user());
     }
 
     #[Computed]
     public function unreadCount()
     {
-        // Chat feature not yet implemented - models don't exist
-        return 0;
+        return $this->chatService->getUnreadMessageCount(Auth::user());
+    }
+
+    #[Renderless]
+    public function refresh()
+    {
+        // This method can be called to refresh the component
     }
 
     public function render()

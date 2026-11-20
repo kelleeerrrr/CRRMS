@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreResourceBorrowRequest;
+use App\Http\Requests\UpdateResourceBorrowRequest;
 use App\Models\Resource;
 use App\Models\ResourceBorrowRequest;
+use App\Services\ResourceBorrowRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ResourceController extends Controller
 {
+    protected ResourceBorrowRequestService $borrowRequestService;
+
+    public function __construct(ResourceBorrowRequestService $borrowRequestService)
+    {
+        $this->borrowRequestService = $borrowRequestService;
+    }
+
     public function index()
     {
         // $this->authorize('viewAny', Resource::class);
@@ -135,53 +145,19 @@ class ResourceController extends Controller
         return view('resources.my-borrowing', compact('borrowRequests'));
     }
 
-    public function storeBorrowRequest(Request $request)
+    public function storeBorrowRequest(StoreResourceBorrowRequest $request)
     {
-        $validated = $request->validate([
-            'resource_id' => 'required|uuid|exists:resources,id',
-            'borrower_name' => 'required|string|max:255',
-            'contact_number' => 'required|string|max:20',
-            'email' => 'required|email',
-            'quantity' => 'required|integer|min:1',
-            'start_date' => 'required|date|after:now',
-            'end_date' => 'required|date|after:start_date',
-            'purpose' => 'required|string|max:500',
-            'intended_use' => 'nullable|string|max:255',
-            'notes' => 'nullable|string|max:500',
-            'agreement' => 'required|accepted',
-        ]);
+        try {
+            $borrowRequest = $this->borrowRequestService->createBorrowRequest(
+                $request->validated(),
+                Auth::user()
+            );
 
-        $resource = Resource::findOrFail($validated['resource_id']);
-
-        if ($resource->status !== 'available') {
-            return back()->with('error', 'This resource is not available for borrowing.');
+            return redirect()->route('resources.my-borrowing')
+                ->with('success', 'Borrow request submitted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($resource->owner_id === Auth::id()) {
-            return back()->with('error', 'You cannot borrow your own resource.');
-        }
-
-        if ($validated['quantity'] > $resource->available_quantity) {
-            return back()->with('error', 'Requested quantity exceeds available quantity.');
-        }
-
-        ResourceBorrowRequest::create([
-            'resource_id' => $validated['resource_id'],
-            'user_id' => Auth::id(),
-            'borrower_name' => $validated['borrower_name'],
-            'contact_number' => $validated['contact_number'],
-            'email' => $validated['email'],
-            'quantity' => $validated['quantity'],
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'purpose' => $validated['purpose'],
-            'intended_use' => $validated['intended_use'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'status' => 'pending',
-        ]);
-
-        return redirect()->route('resources.my-borrowing')
-            ->with('success', 'Borrow request submitted successfully!');
     }
 
     public function showBorrowRequest(ResourceBorrowRequest $request)
@@ -204,47 +180,32 @@ class ResourceController extends Controller
         return view('resource-borrow-requests.edit', compact('request'));
     }
 
-    public function updateBorrowRequest(Request $request, ResourceBorrowRequest $borrowRequest)
+    public function updateBorrowRequest(UpdateResourceBorrowRequest $request, ResourceBorrowRequest $borrowRequest)
     {
-        if ($borrowRequest->user_id !== Auth::id()) {
-            abort(403);
+        try {
+            $borrowRequest = $this->borrowRequestService->updateBorrowRequest(
+                $borrowRequest,
+                $request->validated(),
+                Auth::user()
+            );
+
+            return redirect()->route('resource-borrow-requests.show', $borrowRequest)
+                ->with('success', 'Borrow request updated successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($borrowRequest->status !== 'pending') {
-            return back()->with('error', 'Cannot update a request that is not pending.');
-        }
-
-        $validated = $request->validate([
-            'quantity' => 'required|integer|min:1|max:' . $borrowRequest->resource->available_quantity,
-            'start_date' => 'required|date|after:now',
-            'end_date' => 'required|date|after:start_date',
-            'purpose' => 'required|string|max:500',
-            'intended_use' => 'nullable|string|max:500',
-            'notes' => 'nullable|string|max:1000',
-            'contact_number' => 'required|string|max:20',
-            'email' => 'required|email',
-        ]);
-
-        $borrowRequest->update($validated);
-
-        return redirect()->route('resource-borrow-requests.show', $borrowRequest)
-            ->with('success', 'Borrow request updated successfully!');
     }
 
     public function destroyBorrowRequest(ResourceBorrowRequest $request)
     {
-        if ($request->user_id !== Auth::id()) {
-            abort(403);
+        try {
+            $this->borrowRequestService->cancelBorrowRequest($request, Auth::user());
+
+            return redirect()->route('resources.my-borrowing')
+                ->with('success', 'Borrow request cancelled successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($request->status !== 'pending') {
-            return back()->with('error', 'Cannot cancel a request that is not pending.');
-        }
-
-        $request->delete();
-
-        return redirect()->route('resources.my-borrowing')
-            ->with('success', 'Borrow request cancelled successfully!');
     }
 }
 

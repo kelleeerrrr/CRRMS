@@ -14,6 +14,7 @@ class Notification extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'id',
         'user_id',
         'type',
         'title',
