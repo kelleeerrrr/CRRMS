@@ -27,7 +27,7 @@
             ],
         ],
         [
-            'title' => 'BORROWING & LENDING',
+            'title' => 'MY ACTIVITY',
             'icon' => 'heroicon-o-clipboard-document-list',
             'items' => [
                 ['title' => 'My Requests', 'route' => 'my-lending.requests', 'active' => $currentRoute === 'my-lending.requests'],
