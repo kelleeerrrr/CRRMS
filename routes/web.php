@@ -22,7 +22,6 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\MyLendingController;
-use App\Http\Controllers\BorrowerRequestController;
 use App\Http\Controllers\BorrowerRecordController;
 use App\Http\Controllers\BorrowerIssueReportController;
 use Illuminate\Support\Facades\Route;
@@ -41,8 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::prefix('borrower')->name('borrower.')->group(function () {
-        Route::get('/requests/{category}', [BorrowerRequestController::class, 'index'])->name('requests');
-        Route::get('/approved/{category}', [BorrowerRequestController::class, 'index'])->name('approved');
+        Route::get('/requests', [BorrowerRecordController::class, 'index'])->name('requests');
+        Route::get('/approved', [BorrowerRecordController::class, 'index'])->name('approved');
+        Route::get('/{section}/{category}', function (\Illuminate\Http\Request $request, string $section, string $category) {
+            return redirect()->route("borrower.$section", [...$request->query(), 'category' => $category]);
+        })->whereIn('section', ['requests', 'approved'])->whereIn('category', ['facilities', 'equipment', 'resources']);
         Route::get('/loans', [BorrowerRecordController::class, 'index'])->name('loans');
         Route::get('/history', [BorrowerRecordController::class, 'index'])->name('history');
         Route::get('/issues', [BorrowerIssueReportController::class, 'index'])->name('issues.index');

@@ -113,7 +113,7 @@ class EquipmentBorrowRequestController extends Controller
             $this->borrowService->cancelBorrowRequest($borrowRequest, Auth::user());
 
             return redirect()
-                ->route('borrower.requests', 'equipment')
+                ->route('borrower.requests', ['category' => 'equipment'])
                 ->with('success', 'Borrow request cancelled successfully.');
         } catch (\Exception $e) {
             return back()

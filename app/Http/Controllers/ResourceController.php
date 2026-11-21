@@ -169,7 +169,7 @@ class ResourceController extends Controller
                 Auth::user()
             );
 
-            return redirect()->route('borrower.requests', 'resources')
+            return redirect()->route('borrower.requests', ['category' => 'resources'])
                 ->with('success', 'Borrow request submitted successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -223,7 +223,7 @@ class ResourceController extends Controller
         try {
             $this->borrowRequestService->cancelBorrowRequest($request, Auth::user());
 
-            return redirect()->route('borrower.requests', 'resources')
+            return redirect()->route('borrower.requests', ['category' => 'resources'])
                 ->with('success', 'Borrow request cancelled successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

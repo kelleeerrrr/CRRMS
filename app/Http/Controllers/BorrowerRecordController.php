@@ -15,18 +15,20 @@ class BorrowerRecordController extends Controller
     public function index(Request $request): View
     {
         $loans = $request->routeIs('borrower.loans');
+        $approved = $request->routeIs('borrower.approved');
+        $requestList = $approved || $request->routeIs('borrower.requests');
         $categories = [
             'facilities' => [
                 'Facility Reservations', FacilityReservation::class, 'facility', 'title',
-                'facilities.reservations.show',
+                'facilities.reservations', ['approved', 'reserved', 'checked_in', 'completed'],
             ],
             'equipment' => [
                 'Equipment Borrow Requests', EquipmentBorrowRequest::class, 'items.equipment', 'purpose',
-                'equipment.borrow-requests.show',
+                'equipment.borrow-requests', ['approved', 'in_use', 'returned', 'completed'],
             ],
             'resources' => [
                 'Resource Requests', ResourceBorrowRequest::class, 'resource', 'purpose',
-                'resource-borrow-requests.show',
+                'resource-borrow-requests', ['approved', 'in_use', 'returned'],
             ],
         ];
 
@@ -44,15 +46,19 @@ class BorrowerRecordController extends Controller
         $status = $filters['status'] ?? '';
         $queries = [];
 
-        foreach ($categories as $category => [$label, $model, $relation, $column]) {
+        foreach ($categories as $category => [, $model, $relation, $column, , $approvedStatuses]) {
             if ($categoryFilter !== '' && $categoryFilter !== $category) {
                 continue;
             }
 
             $query = $model::query()
-                ->select('id', 'updated_at')
+                ->select('id', $requestList ? 'created_at as sort_at' : 'updated_at as sort_at')
                 ->selectRaw('? as category', [$category])
                 ->where('user_id', $request->user()->id);
+
+            if ($approved) {
+                $query->whereIn('status', $approvedStatuses);
+            }
 
             if ($loans) {
                 $releaseColumn = $category === 'equipment' ? 'released_at' : 'checked_out_at';
@@ -86,7 +92,7 @@ class BorrowerRecordController extends Controller
         }
 
         $records = DB::query()->fromSub($union, 'borrower_records')
-            ->orderByDesc('updated_at')
+            ->orderByDesc('sort_at')
             ->orderBy('category')
             ->orderBy('id')
             ->paginate(15)
@@ -106,11 +112,13 @@ class BorrowerRecordController extends Controller
             return [
                 'category' => $row->category,
                 'label' => $categories[$row->category][0],
-                'route' => $categories[$row->category][4],
+                'requestRoute' => $categories[$row->category][4],
                 'record' => $models[$row->category]->get($row->id),
             ];
         })->filter(fn ($row) => $row['record'] !== null));
 
-        return view('borrower.records', compact('records', 'loans', 'categories', 'search', 'categoryFilter', 'status'));
+        $view = $requestList ? 'borrower.requests' : 'borrower.records';
+
+        return view($view, compact('records', 'loans', 'approved', 'categories', 'search', 'categoryFilter', 'status'));
     }
 }

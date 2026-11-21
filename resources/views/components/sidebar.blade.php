@@ -3,19 +3,6 @@
     $currentRoute = request()->route()->getName();
     $role = $user->roles()->first()?->name ?? 'user';
 
-    $requestCategories = [
-        'facilities' => 'Facility Reservations',
-        'equipment' => 'Equipment Borrow Requests',
-        'resources' => 'Resource Requests',
-    ];
-    $borrowerRequestItems = fn (string $route) => collect($requestCategories)
-        ->map(fn ($title, $category) => [
-            'title' => $title,
-            'route' => $route,
-            'parameters' => ['category' => $category],
-            'active' => $currentRoute === $route && request()->route('category') === $category,
-        ])->values()->all();
-
     // USER navigation
     $userMenuItems = [
         [
@@ -40,14 +27,16 @@
             ],
         ],
         [
-            'title' => 'REQUESTS',
+            'title' => 'Requests',
             'icon' => 'heroicon-o-clipboard-document-list',
-            'items' => $borrowerRequestItems('borrower.requests'),
+            'route' => 'borrower.requests',
+            'active' => $currentRoute === 'borrower.requests',
         ],
         [
-            'title' => 'APPROVED',
+            'title' => 'Approved',
             'icon' => 'heroicon-o-check-circle',
-            'items' => $borrowerRequestItems('borrower.approved'),
+            'route' => 'borrower.approved',
+            'active' => $currentRoute === 'borrower.approved',
         ],
         [
             'title' => 'Borrowing Records',
@@ -237,7 +226,7 @@
                                     <span class="ml-8">{{ $subItem['title'] }}</span>
                                 </span>
                             @else
-                                <a href="{{ route($subItem['route'], $subItem['parameters'] ?? []) }}"
+                                <a href="{{ route($subItem['route']) }}"
                                    class="flex items-center px-3 py-2 text-sm rounded-lg {{ $subItem['active'] ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-all duration-200">
                                     <span class="ml-8">{{ $subItem['title'] }}</span>
                                 </a>

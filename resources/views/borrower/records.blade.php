@@ -22,7 +22,7 @@
         </form>
 
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            @forelse($records as ['category' => $category, 'label' => $label, 'route' => $route, 'record' => $record])
+            @forelse($records as ['category' => $category, 'label' => $label, 'requestRoute' => $requestRoute, 'record' => $record])
                 @php
                     $name = match ($category) {
                         'facilities' => $record->facility?->name ?? $record->title,
@@ -71,7 +71,7 @@
                     @endif
 
                     <p class="mt-2 break-all text-xs text-gray-500 dark:text-gray-400">Reference {{ $record->id }}</p>
-                    <a href="{{ route($route, $record) }}" class="mt-3 inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">View Details</a>
+                    <a href="{{ route($requestRoute . '.show', $record) }}" class="mt-3 inline-flex rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">View Details</a>
                 </article>
             @empty
                 <p class="py-6 text-sm text-gray-500 dark:text-gray-400">No matching {{ $loans ? 'borrowing records' : 'transactions' }}.</p>

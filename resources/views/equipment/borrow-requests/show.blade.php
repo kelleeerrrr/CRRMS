@@ -13,7 +13,7 @@
                 <p class="text-gray-600 dark:text-gray-400">Request ID: {{ $borrowRequest->id }}</p>
             </div>
             <div x-data class="flex items-center space-x-3">
-                <a href="{{ $isRequester ? route($fromApproved ? 'borrower.approved' : 'borrower.requests', 'equipment') : route('equipment.borrow-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                <a href="{{ $isRequester ? route($fromApproved ? 'borrower.approved' : 'borrower.requests', ['category' => request()->query('category', 'equipment'), 'search' => request()->query('search')]) : route('equipment.borrow-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     {{ $isRequester ? ($fromApproved ? 'Back to Approved' : 'Back to Requests') : 'Back to Borrowing Requests' }}
                 </a>
                 @if($borrowRequest->items->first()?->equipment->owner && $borrowRequest->items->first()->equipment->owner->id !== auth()->id())
