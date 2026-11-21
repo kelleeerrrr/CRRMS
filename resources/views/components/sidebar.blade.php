@@ -61,10 +61,10 @@
             'title' => 'Manage',
             'icon' => 'heroicon-o-cube',
             'items' => [
+                ['title' => 'Inventory', 'route' => 'inventory.index', 'active' => $currentRoute === 'inventory.index'],
                 ['title' => 'School Facilities', 'route' => 'facilities.index', 'active' => $currentRoute === 'facilities.index'],
                 ['title' => 'School Equipment', 'route' => 'equipment.index', 'active' => $currentRoute === 'equipment.index'],
                 ['title' => 'School Resources', 'route' => 'resources.index', 'active' => $currentRoute === 'resources.index'],
-                ['title' => 'Inventory', 'route' => 'inventory.index', 'active' => $currentRoute === 'inventory.index'],
             ],
         ],
         [
