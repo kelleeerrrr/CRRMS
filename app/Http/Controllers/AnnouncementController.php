@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAnnouncement;
 use App\Models\Announcement;
-use App\Models\User;
 use App\Services\AnnouncementService;
 use Illuminate\Http\Request;
 
@@ -51,21 +50,19 @@ class AnnouncementController extends Controller
 
     public function show(Announcement $announcement)
     {
-        $announcement->load(['createdBy', 'attachments']);
+        $announcement->load('createdBy');
 
         return view('announcements.show', compact('announcement'));
     }
 
     public function edit(Announcement $announcement)
     {
-        $announcement->load('attachments');
-
         return view('announcements.edit', compact('announcement'));
     }
 
     public function update(Request $request, Announcement $announcement)
     {
-        $request->validate([
+        $data = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string'],
             'category' => ['sometimes', 'in:general,urgent,event,information'],
@@ -76,7 +73,7 @@ class AnnouncementController extends Controller
         ]);
 
         try {
-            $announcement = $this->announcementService->updateAnnouncement($announcement, $request->validated());
+            $announcement = $this->announcementService->updateAnnouncement($announcement, $data);
 
             return redirect()
                 ->route('announcements.show', $announcement)

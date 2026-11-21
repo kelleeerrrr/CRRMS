@@ -1,11 +1,8 @@
-<x-slot name="title">{{ $announcement->title }}</x-slot>
-
-<x-slot name="breadcrumbs">
-    {{ [
+<x-app-layout :breadcrumbs="[
         ['title' => 'Announcements', 'url' => route('announcements.index')],
         ['title' => $announcement->title, 'url' => null],
-    ] }}
-</x-slot>
+    ]">
+<x-slot name="title">{{ $announcement->title }}</x-slot>
 
 <x-slot name="header">
     <div class="flex items-center justify-between">
@@ -71,11 +68,11 @@
                 <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Published By</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $announcement->createdBy->name }}</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $announcement->createdBy?->name }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Published At</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $announcement->published_at->format('F j, Y, g:i A') }}</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $announcement->published_at?->format('F j, Y, g:i A') }}</p>
                     </div>
                     @if($announcement->expires_at)
                         <div>
@@ -92,13 +89,13 @@
         </x-card>
 
         <!-- Attachments -->
-        @if($announcement->attachments->count() > 0)
+        @if(!empty($announcement->attachments))
             <x-card title="Attachments">
                 <div class="space-y-2">
                     @foreach($announcement->attachments as $attachment)
-                        <a href="{{ asset($attachment->file_path) }}" class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <a href="{{ asset($attachment['file_path']) }}" class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <x-heroicon-o-paperclip class="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3" />
-                            <span class="text-sm text-gray-900 dark:text-white">{{ $attachment->file_name }}</span>
+                            <span class="text-sm text-gray-900 dark:text-white">{{ $attachment['file_name'] }}</span>
                         </a>
                     @endforeach
                 </div>
@@ -133,10 +130,11 @@
                     <x-heroicon-o-users class="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ucfirst($announcement->target_audience) }}</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ucfirst($announcement->audience) }}</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Target audience</p>
                 </div>
             </div>
         </x-card>
     </div>
 </div>
+</x-app-layout>

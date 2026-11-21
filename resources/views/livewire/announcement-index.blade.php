@@ -100,10 +100,10 @@
                                     <x-heroicon-o-calendar class="w-4 h-4 mr-1" />
                                     {{ $announcement->published_at->format('M j, Y') }}
                                 </span>
-                                @if($announcement->attachments->count() > 0)
+                                @if(!empty($announcement->attachments))
                                     <span class="flex items-center">
                                         <x-heroicon-o-paperclip class="w-4 h-4 mr-1" />
-                                        {{ $announcement->attachments->count() }} attachment(s)
+                                        {{ count($announcement->attachments) }} attachment(s)
                                     </span>
                                 @endif
                             </div>

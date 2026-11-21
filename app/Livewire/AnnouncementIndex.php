@@ -46,7 +46,7 @@ class AnnouncementIndex extends Component
     #[Computed]
     public function announcements()
     {
-        $query = Announcement::with(['createdBy', 'attachments']);
+        $query = Announcement::with('createdBy');
 
         if ($this->search) {
             $query->where(function ($q) {
