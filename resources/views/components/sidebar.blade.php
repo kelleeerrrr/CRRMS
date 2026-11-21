@@ -192,7 +192,7 @@
     }
 @endphp
 
-<aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 lg:translate-x-0 -translate-x-full fixed lg:relative z-30 h-full shadow-lg lg:shadow-none" x-data="{ open: false, mobileOpen: false }">
+<aside class="w-64 max-w-full shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 lg:translate-x-0 -translate-x-full fixed lg:relative z-30 h-full shadow-lg lg:shadow-none" x-data="{ open: false, mobileOpen: false }">
     <!-- Logo -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-600 to-primary-700">
         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
@@ -214,21 +214,21 @@
                 <div x-data="{ open: true }">
                     <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 group">
                         <div class="flex items-center space-x-3">
-                            <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
-                            <span>{{ $item['title'] }}</span>
+                            <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
+                            <span class="whitespace-nowrap">{{ $item['title'] }}</span>
                         </div>
-                        <x-heroicon-o-chevron-down class="w-4 h-4 text-gray-400 transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" />
+                        <x-heroicon-o-chevron-down class="w-4 h-4 shrink-0 text-gray-400 transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" />
                     </button>
                     <div x-show="open" x-collapse class="mt-1 space-y-1">
                         @foreach($item['items'] as $subItem)
                             @if($subItem['route'] === '#')
                                 <span class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-400 dark:text-gray-500 cursor-not-allowed">
-                                    <span class="ml-8">{{ $subItem['title'] }}</span>
+                                    <span class="ml-8 whitespace-nowrap">{{ $subItem['title'] }}</span>
                                 </span>
                             @else
                                 <a href="{{ route($subItem['route']) }}"
                                    class="flex items-center px-3 py-2 text-sm rounded-lg {{ $subItem['active'] ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-all duration-200">
-                                    <span class="ml-8">{{ $subItem['title'] }}</span>
+                                    <span class="ml-8 whitespace-nowrap">{{ $subItem['title'] }}</span>
                                 </a>
                             @endif
                         @endforeach
@@ -238,8 +238,8 @@
                 <!-- Single Menu Item -->
                 <a href="{{ route($item['route']) }}"
                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {{ $item['active'] ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-all duration-200 group">
-                    <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 {{ $item['active'] ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400' }} transition-colors" />
-                    <span class="ml-3">{{ $item['title'] }}</span>
+                    <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 {{ $item['active'] ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400' }} transition-colors" />
+                    <span class="ml-3 whitespace-nowrap">{{ $item['title'] }}</span>
                 </a>
             @endif
         @endforeach
