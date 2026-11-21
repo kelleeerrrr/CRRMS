@@ -12,6 +12,12 @@
             'active' => $currentRoute === 'dashboard',
         ],
         [
+            'title' => 'Announcements',
+            'icon' => 'heroicon-o-megaphone',
+            'route' => 'announcements.index',
+            'active' => str_starts_with($currentRoute, 'announcements'),
+        ],
+        [
             'title' => 'RESOURCES',
             'icon' => 'heroicon-o-cube',
             'items' => [
@@ -30,12 +36,6 @@
             'active' => $currentRoute === 'calendar.index',
         ],
         [
-            'title' => 'Announcements',
-            'icon' => 'heroicon-o-megaphone',
-            'route' => 'announcements.index',
-            'active' => str_starts_with($currentRoute, 'announcements'),
-        ],
-        [
             'title' => 'Profile',
             'icon' => 'heroicon-o-user',
             'route' => 'profile.edit',
@@ -50,6 +50,12 @@
             'icon' => 'heroicon-o-home',
             'route' => 'dashboard',
             'active' => $currentRoute === 'dashboard',
+        ],
+        [
+            'title' => 'Announcements',
+            'icon' => 'heroicon-o-megaphone',
+            'route' => 'announcements.index',
+            'active' => str_starts_with($currentRoute, 'announcements'),
         ],
         [
             'title' => 'Manage',
@@ -76,12 +82,6 @@
             'route' => 'calendar.index',
             'active' => $currentRoute === 'calendar.index',
         ],
-        [
-            'title' => 'Announcements',
-            'icon' => 'heroicon-o-megaphone',
-            'route' => 'announcements.index',
-            'active' => str_starts_with($currentRoute, 'announcements'),
-        ],
     ];
 
     // ADMIN navigation
@@ -91,6 +91,12 @@
             'icon' => 'heroicon-o-home',
             'route' => 'dashboard',
             'active' => $currentRoute === 'dashboard',
+        ],
+        [
+            'title' => 'Announcements',
+            'icon' => 'heroicon-o-megaphone',
+            'route' => 'announcements.index',
+            'active' => str_starts_with($currentRoute, 'announcements'),
         ],
         [
             'title' => 'Facilities',
@@ -109,12 +115,6 @@
             'icon' => 'heroicon-o-document',
             'route' => 'resources.index',
             'active' => str_starts_with($currentRoute, 'resources'),
-        ],
-        [
-            'title' => 'Announcements',
-            'icon' => 'heroicon-o-megaphone',
-            'route' => 'announcements.index',
-            'active' => str_starts_with($currentRoute, 'announcements'),
         ],
     ];
 
@@ -127,6 +127,12 @@
             'active' => $currentRoute === 'dashboard',
         ],
         [
+            'title' => 'Announcements',
+            'icon' => 'heroicon-o-megaphone',
+            'route' => 'announcements.index',
+            'active' => str_starts_with($currentRoute, 'announcements'),
+        ],
+        [
             'title' => 'Facilities',
             'icon' => 'heroicon-o-building-office',
             'route' => 'facilities.reservations.index',
@@ -143,12 +149,6 @@
             'icon' => 'heroicon-o-document',
             'route' => 'resources.index',
             'active' => str_starts_with($currentRoute, 'resources'),
-        ],
-        [
-            'title' => 'Announcements',
-            'icon' => 'heroicon-o-megaphone',
-            'route' => 'announcements.index',
-            'active' => str_starts_with($currentRoute, 'announcements'),
         ],
     ];
 
