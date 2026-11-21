@@ -30,9 +30,14 @@
             <x-heroicon-o-sun class="w-5 h-5 hidden dark:block" />
         </button>
 
+        <a href="{{ route('chat.index') }}" aria-label="Chat" title="Chat"
+            class="inline-flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
+            <x-heroicon-o-envelope class="w-5 h-5" />
+        </a>
+
         <!-- Notifications -->
         <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
+            <button type="button" aria-label="Notifications" title="Notifications" :aria-expanded="open" @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
                 <x-heroicon-o-bell class="w-5 h-5" />
                 @if($unreadCount > 0)
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger-500 rounded-full ring-2 ring-white dark:ring-gray-800"></span>

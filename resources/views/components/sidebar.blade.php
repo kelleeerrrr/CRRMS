@@ -30,18 +30,6 @@
             'active' => $currentRoute === 'calendar.index',
         ],
         [
-            'title' => 'Chat',
-            'icon' => 'heroicon-o-envelope',
-            'route' => 'chat.index',
-            'active' => str_starts_with($currentRoute, 'chat'),
-        ],
-        [
-            'title' => 'Notifications',
-            'icon' => 'heroicon-o-bell',
-            'route' => 'notifications.index',
-            'active' => str_starts_with($currentRoute, 'notifications'),
-        ],
-        [
             'title' => 'Announcements',
             'icon' => 'heroicon-o-megaphone',
             'route' => 'announcements.index',
@@ -87,18 +75,6 @@
             'icon' => 'heroicon-o-calendar',
             'route' => 'calendar.index',
             'active' => $currentRoute === 'calendar.index',
-        ],
-        [
-            'title' => 'Chat',
-            'icon' => 'heroicon-o-envelope',
-            'route' => 'chat.index',
-            'active' => str_starts_with($currentRoute, 'chat'),
-        ],
-        [
-            'title' => 'Notifications',
-            'icon' => 'heroicon-o-bell',
-            'route' => 'notifications.index',
-            'active' => str_starts_with($currentRoute, 'notifications'),
         ],
         [
             'title' => 'Announcements',
