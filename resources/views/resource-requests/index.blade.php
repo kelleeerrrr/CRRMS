@@ -99,11 +99,11 @@
                                             @if($request->status === 'pending')
                                                 <form method="POST" action="{{ route('resource-requests.approve', $request) }}" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm">
+                                                    <button type="submit" class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
                                                         Approve
                                                     </button>
                                                 </form>
-                                                <button onclick="showDeclineModal('{{ $request->id }}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm ml-2">
+                                                <button onclick="showDeclineModal('{{ $request->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
                                                     Reject
                                                 </button>
                                             @endif

@@ -94,10 +94,10 @@
                                 <td class="py-3 px-4">
                                     <div class="flex items-center justify-center gap-2">
                                         @if(auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
-                                            <button wire:click="approve('{{ $reservation->id }}')" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm">
+                                            <button wire:click="approve('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
                                                 Approve
                                             </button>
-                                            <button wire:click="reject('{{ $reservation->id }}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm">
+                                            <button wire:click="reject('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
                                                 Reject
                                             </button>
                                         @endif
