@@ -247,19 +247,21 @@ class EquipmentBorrowRequestService
     public function checkOutEquipment(EquipmentBorrowRequest $request, User $staff): EquipmentBorrowRequest
     {
         return DB::transaction(function () use ($request, $staff) {
+            $request = EquipmentBorrowRequest::lockForUpdate()->findOrFail($request->id);
+
             if ($request->status !== 'approved') {
                 throw new \Exception('Only approved requests can be checked out.');
             }
 
             $request->update([
                 'status' => 'in_use',
-                'checked_out_at' => now(),
-                'checked_out_by' => $staff->id,
+                'released_at' => now(),
+                'released_by' => $staff->id,
             ]);
 
             Log::info('Equipment borrow request checked out', [
                 'request_id' => $request->id,
-                'checked_out_by' => $staff->id,
+                'released_by' => $staff->id,
             ]);
 
             return $request->fresh();
@@ -269,6 +271,8 @@ class EquipmentBorrowRequestService
     public function returnEquipment(EquipmentBorrowRequest $request, array $returnData, User $staff): EquipmentBorrowRequest
     {
         return DB::transaction(function () use ($request, $returnData, $staff) {
+            $request = EquipmentBorrowRequest::lockForUpdate()->findOrFail($request->id);
+
             if ($request->status !== 'in_use') {
                 throw new \Exception('Only in-use requests can be returned.');
             }

@@ -289,8 +289,10 @@ class ResourceBorrowRequestService
     public function checkOutResource(ResourceBorrowRequest $request, User $staff): ResourceBorrowRequest
     {
         return DB::transaction(function () use ($request, $staff) {
+            $request = ResourceBorrowRequest::lockForUpdate()->findOrFail($request->id);
+
             if ($request->status !== 'approved') {
-                throw new \Exception('Only approved requests can be checked out.');
+                throw new \DomainException('Only approved requests can be checked out.');
             }
 
             $request->update([
@@ -318,8 +320,10 @@ class ResourceBorrowRequestService
     public function returnResource(ResourceBorrowRequest $request, User $staff): ResourceBorrowRequest
     {
         return DB::transaction(function () use ($request, $staff) {
+            $request = ResourceBorrowRequest::lockForUpdate()->findOrFail($request->id);
+
             if ($request->status !== 'in_use') {
-                throw new \Exception('Only in-use requests can be returned.');
+                throw new \DomainException('Only in-use requests can be returned.');
             }
 
             // Restore resource quantity

@@ -23,6 +23,8 @@ use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\MyLendingController;
 use App\Http\Controllers\BorrowerRequestController;
+use App\Http\Controllers\BorrowerRecordController;
+use App\Http\Controllers\BorrowerIssueReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,6 +43,13 @@ Route::middleware('auth')->group(function () {
     Route::prefix('borrower')->name('borrower.')->group(function () {
         Route::get('/requests/{category}', [BorrowerRequestController::class, 'index'])->name('requests');
         Route::get('/approved/{category}', [BorrowerRequestController::class, 'index'])->name('approved');
+        Route::get('/loans', [BorrowerRecordController::class, 'index'])->name('loans');
+        Route::get('/history', [BorrowerRecordController::class, 'index'])->name('history');
+        Route::get('/issues', [BorrowerIssueReportController::class, 'index'])->name('issues.index');
+        Route::get('/issues/review', [BorrowerIssueReportController::class, 'index'])->name('issues.review');
+        Route::post('/issues', [BorrowerIssueReportController::class, 'store'])->name('issues.store');
+        Route::get('/issues/{issue}/photos/{photo}', [BorrowerIssueReportController::class, 'photo'])
+            ->whereUuid('issue')->whereNumber('photo')->name('issues.photo');
     });
 
     // Legacy borrower request pages
@@ -120,6 +129,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ResourceRequestController::class, 'index'])->name('index');
         Route::post('/{request}/approve', [ResourceRequestController::class, 'approve'])->name('approve');
         Route::post('/{request}/decline', [ResourceRequestController::class, 'decline'])->name('decline');
+        Route::post('/{request}/check-out', [ResourceRequestController::class, 'checkOut'])->name('check-out');
+        Route::post('/{request}/return', [ResourceRequestController::class, 'returnResource'])->name('return');
     });
 
     // Building Management

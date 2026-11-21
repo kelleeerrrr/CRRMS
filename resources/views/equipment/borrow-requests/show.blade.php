@@ -153,11 +153,11 @@
                         'icon' => 'x-circle',
                         'description' => $borrowRequest->rejection_reason
                     ] : null,
-                    $borrowRequest->checked_out_at ? [
+                    $borrowRequest->released_at ? [
                         'title' => 'Checked Out',
-                        'time' => $borrowRequest->checked_out_at->format('M d, Y H:i'),
+                        'time' => $borrowRequest->released_at->format('M d, Y H:i'),
                         'icon' => 'arrow-right-on-rectangle',
-                        'description' => 'Checked out by ' . $borrowRequest->checkedOutBy->name
+                        'description' => 'Checked out by ' . ($borrowRequest->releasedBy?->name ?? 'Staff')
                     ] : null,
                     $borrowRequest->returned_at ? [
                         'title' => 'Returned',

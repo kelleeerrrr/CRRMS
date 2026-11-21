@@ -54,4 +54,30 @@ class ResourceRequestController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
+    public function checkOut(ResourceBorrowRequest $request)
+    {
+        abort_unless($request->canBeApprovedBy(auth()->user()), 403);
+
+        try {
+            $this->borrowRequestService->checkOutResource($request, auth()->user());
+
+            return back()->with('success', 'Resource released successfully.');
+        } catch (\DomainException $error) {
+            return back()->with('error', $error->getMessage());
+        }
+    }
+
+    public function returnResource(ResourceBorrowRequest $request)
+    {
+        abort_unless($request->canBeApprovedBy(auth()->user()), 403);
+
+        try {
+            $this->borrowRequestService->returnResource($request, auth()->user());
+
+            return back()->with('success', 'Resource return recorded.');
+        } catch (\DomainException $error) {
+            return back()->with('error', $error->getMessage());
+        }
+    }
 }

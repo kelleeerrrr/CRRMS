@@ -28,6 +28,12 @@
                         </button>
                     </form>
                 @endif
+                @if($request->canBeApprovedBy(auth()->user()) && in_array($request->status, ['approved', 'in_use'], true))
+                    <form action="{{ route($request->status === 'approved' ? 'resource-requests.check-out' : 'resource-requests.return', $request) }}" method="POST">
+                        @csrf
+                        <x-button type="submit" variant="success">{{ $request->status === 'approved' ? 'Release Resource' : 'Record Return' }}</x-button>
+                    </form>
+                @endif
                 @if($isRequester && $request->status === 'pending')
                     <a href="{{ route('resource-borrow-requests.edit', $request) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                         Edit

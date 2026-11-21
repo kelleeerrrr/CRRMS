@@ -42,7 +42,7 @@
                         <p class="break-all text-xs text-gray-500 dark:text-gray-400">Reference {{ $record->id }}</p>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             <a href="{{ route($requestRoute . '.show', [$record, 'from' => $approved ? 'approved' : null]) }}"
-                               class="inline-flex items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700">
+                               class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
                                 View Details
                             </a>
                             @if($canEdit)

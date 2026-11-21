@@ -50,6 +50,24 @@
             'items' => $borrowerRequestItems('borrower.approved'),
         ],
         [
+            'title' => 'Borrowing Records',
+            'icon' => 'heroicon-o-document-text',
+            'route' => 'borrower.loans',
+            'active' => $currentRoute === 'borrower.loans',
+        ],
+        [
+            'title' => 'Transaction History',
+            'icon' => 'heroicon-o-clock',
+            'route' => 'borrower.history',
+            'active' => $currentRoute === 'borrower.history',
+        ],
+        [
+            'title' => 'Report an Issue',
+            'icon' => 'heroicon-o-exclamation-triangle',
+            'route' => 'borrower.issues.index',
+            'active' => $currentRoute === 'borrower.issues.index',
+        ],
+        [
             'title' => 'Calendar',
             'icon' => 'heroicon-o-calendar',
             'route' => 'calendar.index',
@@ -174,6 +192,15 @@
         'user' => $userMenuItems,
         default => $userMenuItems,
     };
+
+    if ($user->can('review-borrower-issues')) {
+        $menuItems[] = [
+            'title' => 'Issue Reports',
+            'icon' => 'heroicon-o-exclamation-triangle',
+            'route' => 'borrower.issues.review',
+            'active' => $currentRoute === 'borrower.issues.review',
+        ];
+    }
 @endphp
 
 <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 lg:translate-x-0 -translate-x-full fixed lg:relative z-30 h-full shadow-lg lg:shadow-none" x-data="{ open: false, mobileOpen: false }">

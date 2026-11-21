@@ -67,7 +67,7 @@ class EquipmentBorrowRequestController extends Controller
     {
         $this->authorize('view', $borrowRequest);
 
-        $borrowRequest->load(['items.equipment', 'user', 'organization', 'approvedBy', 'cancelledBy', 'checkedOutBy', 'returnedBy']);
+        $borrowRequest->load(['items.equipment', 'user', 'organization', 'approvedBy', 'cancelledBy', 'releasedBy', 'returnedBy']);
 
         return view('equipment.borrow-requests.show', compact('borrowRequest'));
     }
