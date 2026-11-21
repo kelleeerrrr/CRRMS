@@ -258,7 +258,7 @@ class DashboardService
             ->toArray();
     }
 
-    public function getSchoolOfficerPendingRequests(int $limit = 10): array
+    public function getSchoolOfficerPendingRequests(int $limit = 3): array
     {
         $facilityReservations = FacilityReservation::with(['facility', 'user'])
             ->where('status', 'pending')
@@ -270,6 +270,7 @@ class DashboardService
                 'id' => $r->id,
                 'title' => $r->facility->name,
                 'user' => $r->user->name,
+                'created_at' => $r->created_at,
                 'date' => $r->start_date->format('M j, Y'),
                 'status' => $r->status,
                 'url' => route('facilities.reservations.show', $r),
@@ -285,6 +286,7 @@ class DashboardService
                 'id' => $b->id,
                 'title' => 'Equipment Request',
                 'user' => $b->user->name,
+                'created_at' => $b->created_at,
                 'date' => $b->created_at->format('M j, Y'),
                 'status' => $b->status,
                 'url' => route('equipment.borrow-requests.show', $b),
@@ -300,12 +302,19 @@ class DashboardService
                 'id' => $b->id,
                 'title' => $b->resource->name,
                 'user' => $b->user->name,
+                'created_at' => $b->created_at,
                 'date' => $b->created_at->format('M j, Y'),
                 'status' => $b->status,
                 'url' => route('resource-borrow-requests.show', $b),
             ]);
 
-        return $facilityReservations->concat($equipmentBorrows)->concat($resourceBorrows)->take($limit)->toArray();
+        return $facilityReservations
+            ->concat($equipmentBorrows)
+            ->concat($resourceBorrows)
+            ->sortByDesc('created_at')
+            ->take($limit)
+            ->values()
+            ->toArray();
     }
 
     public function getSchoolOfficerMaintenance(int $limit = 5): array
