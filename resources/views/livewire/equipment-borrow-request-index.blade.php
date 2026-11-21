@@ -1,9 +1,4 @@
 <div>
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Equipment Borrow Requests</h2>
-    </div>
-
     <!-- Filters -->
     <x-card class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
