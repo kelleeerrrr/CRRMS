@@ -264,11 +264,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [CalendarController::class, 'index'])->name('index');
         Route::get('/create', [CalendarController::class, 'create'])->name('create');
         Route::post('/', [CalendarController::class, 'store'])->name('store');
+        Route::get('/data', [CalendarController::class, 'calendarData'])->name('data');
         Route::get('/{event}', [CalendarController::class, 'show'])->name('show');
         Route::get('/{event}/edit', [CalendarController::class, 'edit'])->name('edit');
         Route::put('/{event}', [CalendarController::class, 'update'])->name('update');
         Route::delete('/{event}', [CalendarController::class, 'destroy'])->name('destroy');
-        Route::get('/data', [CalendarController::class, 'calendarData'])->name('data');
     });
 
     // Global Search
