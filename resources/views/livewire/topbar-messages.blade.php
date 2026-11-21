@@ -16,15 +16,18 @@
 
         <ul class="max-h-96 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
             @forelse($recentMessages as $message)
-                <li wire:key="topbar-message-sender-{{ $message->sender_id }}" class="p-4">
-                    <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                        {{ $message->sender?->name ?? 'Unknown sender' }}
-                        @if($message->conversation?->name)
-                            <span class="font-normal text-gray-500 dark:text-gray-400">· {{ $message->conversation->name }}</span>
-                        @endif
-                    </p>
-                    <p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ $message->content ?: ($message->file_name ?: 'Attachment') }}</p>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $message->created_at->diffForHumans() }}</p>
+                <li wire:key="topbar-message-sender-{{ $message->sender_id }}">
+                    <a href="{{ route('chat.show', $message->conversation_id) }}"
+                        class="block p-4 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-500 dark:hover:bg-gray-700">
+                        <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                            {{ $message->sender?->name ?? 'Unknown sender' }}
+                            @if($message->conversation?->name)
+                                <span class="font-normal text-gray-500 dark:text-gray-400">· {{ $message->conversation->name }}</span>
+                            @endif
+                        </p>
+                        <p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ $message->content ?: ($message->file_name ?: 'Attachment') }}</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $message->created_at->diffForHumans() }}</p>
+                    </a>
                 </li>
             @empty
                 <li class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No incoming messages yet</li>
