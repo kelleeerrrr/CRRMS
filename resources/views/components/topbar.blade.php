@@ -30,10 +30,7 @@
             <x-heroicon-o-sun class="w-5 h-5 hidden dark:block" />
         </button>
 
-        <a href="{{ route('chat.index') }}" aria-label="Chat" title="Chat"
-            class="inline-flex p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
-            <x-heroicon-o-envelope class="w-5 h-5" />
-        </a>
+        <livewire:topbar-messages />
 
         <!-- Notifications -->
         <div class="relative" x-data="{ open: false }">
