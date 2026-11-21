@@ -1,3 +1,7 @@
+@php
+    $isRequester = $borrowRequest->user_id === auth()->id();
+@endphp
+
 <x-app-layout>
     <x-slot name="title">Borrow Request Details</x-slot>
 
@@ -7,9 +11,9 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $borrowRequest->purpose }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">Request ID: {{ $borrowRequest->id }}</p>
             </div>
-            <div class="flex items-center space-x-3">
-                <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                    Back to My Requests
+            <div x-data class="flex items-center space-x-3">
+                <a href="{{ $isRequester ? route('my-lending.requests') : route('equipment.borrow-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    {{ $isRequester ? 'Back to My Requests' : 'Back to Borrowing Requests' }}
                 </a>
                 @if($borrowRequest->items->first()?->equipment->owner && $borrowRequest->items->first()->equipment->owner->id !== auth()->id())
                     <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
@@ -23,28 +27,28 @@
                         </button>
                     </form>
                 @endif
-                @if(auth()->user()->can('update', $borrowRequest) && $borrowRequest->status === 'pending')
+                @if(auth()->user()->can('update', $borrowRequest))
                 <a href="{{ route('equipment.borrow-requests.edit', $borrowRequest) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Edit
                 </a>
                 @endif
-                @if(auth()->user()->can('approve', $borrowRequest) && $borrowRequest->status === 'pending')
+                @if(!$isRequester && auth()->user()->can('approve', $borrowRequest) && $borrowRequest->status === 'pending')
                 <form action="{{ route('equipment.borrow-requests.approve', $borrowRequest) }}" method="POST" class="inline">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         Approve
                     </button>
                 </form>
-                <button x-on:click="openRejectModal = true" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    Reject
+                <button type="button" x-on:click="$dispatch('open-modal', 'reject-modal')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Reject Request
                 </button>
             @endif
-            @if(auth()->user()->can('delete', $borrowRequest) && in_array($borrowRequest->status, ['pending', 'approved']))
-                <form action="{{ route('equipment.borrow-requests.destroy', $borrowRequest) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this request?')">
+            @if(auth()->user()->can('delete', $borrowRequest))
+                <form action="{{ route('equipment.borrow-requests.destroy', $borrowRequest) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to withdraw your request?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                        Cancel
+                        Withdraw Request
                     </button>
                 </form>
             @endif
@@ -57,7 +61,7 @@
                 </form>
             @endif
             @if(auth()->user()->can('return', $borrowRequest) && $borrowRequest->status === 'in_use')
-                <button x-on:click="openReturnModal = true" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="button" x-on:click="$dispatch('open-modal', 'return-modal')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     Return Equipment
                 </button>
             @endif
@@ -176,7 +180,7 @@
     <div class="space-y-6">
         <!-- Requester Info -->
         <x-card title="Requester">
-            <div class="flex items-center space-x-3">
+            <div x-data class="flex items-center space-x-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
                     {{ strtoupper(substr($borrowRequest->user->name, 0, 1)) }}
                 </div>
@@ -207,6 +211,7 @@
     </div>
 </div>
 
+@if(!$isRequester && auth()->user()->can('approve', $borrowRequest) && $borrowRequest->status === 'pending')
 <!-- Reject Modal -->
 <x-modal name="reject-modal" :show="false">
     <form action="{{ route('equipment.borrow-requests.reject', $borrowRequest) }}" method="POST">
@@ -223,7 +228,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
             <button type="button" x-on:click="$dispatch('close-modal', 'reject-modal')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                Cancel
+                Close
             </button>
             <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                 Reject Request
@@ -231,6 +236,7 @@
         </div>
     </form>
 </x-modal>
+@endif
 
 <!-- Return Modal -->
 <x-modal name="return-modal" :show="false">
@@ -267,7 +273,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
             <button type="button" x-on:click="$dispatch('close-modal', 'return-modal')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                Cancel
+                Close
             </button>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Return Equipment

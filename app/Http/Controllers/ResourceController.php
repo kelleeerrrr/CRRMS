@@ -179,6 +179,12 @@ class ResourceController extends Controller
     public function showBorrowRequest(ResourceBorrowRequest $request)
     {
         $request->load(['resource', 'user']);
+
+        $user = Auth::user();
+        abort_unless($request->user_id === $user->id
+            || $request->canBeApprovedBy($user)
+            || $user->hasRole('school_officer'), 403);
+
         return view('resource-borrow-requests.show', compact('request'));
     }
 

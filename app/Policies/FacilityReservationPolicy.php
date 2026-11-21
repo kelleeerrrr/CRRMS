@@ -39,9 +39,7 @@ class FacilityReservationPolicy
      */
     public function update(User $user, FacilityReservation $facilityReservation): bool
     {
-        return $user->id === $facilityReservation->user_id 
-            || $user->can('manage-facilities') 
-            || $user->can('super-admin');
+        return $user->id === $facilityReservation->user_id && $facilityReservation->status === 'pending';
     }
 
     /**
@@ -49,9 +47,7 @@ class FacilityReservationPolicy
      */
     public function delete(User $user, FacilityReservation $facilityReservation): bool
     {
-        return $user->id === $facilityReservation->user_id 
-            || $user->can('manage-facilities') 
-            || $user->can('super-admin');
+        return $user->id === $facilityReservation->user_id && in_array($facilityReservation->status, ['pending', 'approved'], true);
     }
 
     /**

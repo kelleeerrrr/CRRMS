@@ -302,7 +302,7 @@ class DashboardService
                 'user' => $b->user->name,
                 'date' => $b->created_at->format('M j, Y'),
                 'status' => $b->status,
-                'url' => '#',
+                'url' => route('resource-borrow-requests.show', $b),
             ]);
 
         return $facilityReservations->concat($equipmentBorrows)->concat($resourceBorrows)->take($limit)->toArray();
