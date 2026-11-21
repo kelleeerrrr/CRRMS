@@ -5,8 +5,8 @@
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $approved ? 'Approved Requests' : 'Requests' }}</h1>
     </x-slot>
 
-    <x-card>
-        <form method="GET" action="{{ url()->current() }}" class="mb-6 flex flex-wrap items-end gap-3">
+    <x-card class="mb-6">
+        <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-end gap-3">
             <x-input type="search" name="search" label="Search" :value="$search" placeholder="Name, purpose, or reference" />
             <x-select name="category" label="Category" :options="array_map(fn ($category) => $category[0], $categories)"
                       :value="$categoryFilter" placeholder="All categories" />
@@ -18,7 +18,9 @@
                 <a href="{{ route($categoryFilter . '.index') }}" class="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400">Browse {{ $categoryFilter }}</a>
             @endif
         </form>
+    </x-card>
 
+    <x-card>
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
             @forelse($records as ['category' => $category, 'label' => $label, 'requestRoute' => $requestRoute, 'record' => $record])
                 @php

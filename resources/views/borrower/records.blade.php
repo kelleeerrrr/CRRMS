@@ -4,8 +4,8 @@
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $loans ? 'Borrowing Records' : 'Transaction History' }}</h1>
     </x-slot>
 
-    <x-card>
-        <form method="GET" action="{{ url()->current() }}" class="mb-4 flex flex-wrap items-end gap-3">
+    <x-card class="mb-6">
+        <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-end gap-3">
             <x-input type="search" name="search" label="Search" :value="$search" maxlength="255" placeholder="Name, purpose, or reference" />
             <x-select name="category" label="Category" :options="array_map(fn ($category) => $category[0], $categories)" :value="$categoryFilter" placeholder="All categories" />
             @unless($loans)
@@ -20,7 +20,9 @@
                 <a href="{{ url()->current() }}" class="px-3 py-2 text-sm text-blue-700 dark:text-blue-300">Clear</a>
             @endif
         </form>
+    </x-card>
 
+    <x-card>
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
             @forelse($records as ['category' => $category, 'label' => $label, 'requestRoute' => $requestRoute, 'record' => $record])
                 @php
