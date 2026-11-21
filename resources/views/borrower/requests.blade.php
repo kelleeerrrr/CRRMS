@@ -23,10 +23,16 @@
                         'equipment' => [$record->items->pluck('equipment.name')->filter()->unique()->join(', ') ?: $record->purpose, $record->borrow_date, $record->return_date],
                         'resources' => [$record->resource?->name ?? $record->purpose, $record->start_date, $record->end_date],
                     };
+                    $canEdit = !$approved && ($category === 'resources'
+                        ? $record->status === 'pending'
+                        : auth()->user()->can('update', $record));
+                    $canWithdraw = !$approved && ($category === 'resources'
+                        ? $record->status === 'pending'
+                        : auth()->user()->can('delete', $record));
                 @endphp
                 <div class="flex flex-wrap items-start justify-between gap-3 py-4">
                     <div class="min-w-0">
-                        <a href="{{ route($detailRoute, $record) }}" class="font-semibold text-blue-700 hover:underline dark:text-blue-300">{{ $name }}</a>
+                        <p class="font-semibold text-gray-900 dark:text-white">{{ $name }}</p>
                         <p class="text-sm text-gray-600 dark:text-gray-300">
                             {{ $start?->format($category === 'resources' ? 'M j, Y g:i A' : 'M j, Y') }}
                             @if($end)
@@ -34,6 +40,25 @@
                             @endif
                         </p>
                         <p class="break-all text-xs text-gray-500 dark:text-gray-400">Reference {{ $record->id }}</p>
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                            <a href="{{ route($requestRoute . '.show', [$record, 'from' => $approved ? 'approved' : null]) }}"
+                               class="inline-flex items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700">
+                                View Details
+                            </a>
+                            @if($canEdit)
+                                <a href="{{ route($requestRoute . '.edit', $record) }}"
+                                   class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Edit
+                                </a>
+                            @endif
+                            @if($canWithdraw)
+                                <form method="POST" action="{{ route($requestRoute . '.destroy', $record) }}" onsubmit="return confirm('Withdraw this request?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-button type="submit" variant="danger" size="sm">Withdraw</x-button>
+                                </form>
+                            @endif
+                        </div>
                     </div>
                     <x-status-badge :status="$record->status" />
                 </div>

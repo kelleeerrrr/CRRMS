@@ -91,6 +91,21 @@ class EquipmentBorrowRequestService
         });
     }
 
+    public function updateBorrowRequest(EquipmentBorrowRequest $request, array $data): EquipmentBorrowRequest
+    {
+        return DB::transaction(function () use ($request, $data) {
+            $request = EquipmentBorrowRequest::lockForUpdate()->findOrFail($request->id);
+
+            if ($request->status !== 'pending') {
+                throw new \DomainException('Only pending requests can be edited.');
+            }
+
+            $request->update($data);
+
+            return $request;
+        });
+    }
+
     public function approveBorrowRequest(EquipmentBorrowRequest $request, User $approver): EquipmentBorrowRequest
     {
         return DB::transaction(function () use ($request, $approver) {

@@ -15,20 +15,20 @@ class BorrowerRequestController extends Controller
     {
         $approved = $request->routeIs('borrower.approved');
 
-        [$title, $query, $detailRoute, $browseRoute, $searchColumn, $relation, $approvedStatuses] = match ($category) {
+        [$title, $query, $requestRoute, $browseRoute, $searchColumn, $relation, $approvedStatuses] = match ($category) {
             'facilities' => [
                 'Facility Reservations', FacilityReservation::with('facility'),
-                'facilities.reservations.show', 'facilities.index', 'title', 'facility',
+                'facilities.reservations', 'facilities.index', 'title', 'facility',
                 ['approved', 'reserved', 'checked_in', 'completed'],
             ],
             'equipment' => [
                 'Equipment Borrow Requests', EquipmentBorrowRequest::with('items.equipment'),
-                'equipment.borrow-requests.show', 'equipment.index', 'purpose', 'items.equipment',
+                'equipment.borrow-requests', 'equipment.index', 'purpose', 'items.equipment',
                 ['approved', 'in_use', 'returned', 'completed'],
             ],
             'resources' => [
                 'Resource Requests', ResourceBorrowRequest::with('resource'),
-                'resource-borrow-requests.show', 'resources.index', 'purpose', 'resource',
+                'resource-borrow-requests', 'resources.index', 'purpose', 'resource',
                 ['approved', 'in_use', 'returned'],
             ],
             default => abort(404),
@@ -55,7 +55,7 @@ class BorrowerRequestController extends Controller
         $records = $query->latest()->orderBy('id')->paginate(15)->appends(['search' => $search]);
 
         return view('borrower.requests', compact(
-            'category', 'title', 'approved', 'records', 'search', 'detailRoute', 'browseRoute'
+            'category', 'title', 'approved', 'records', 'search', 'requestRoute', 'browseRoute'
         ));
     }
 }

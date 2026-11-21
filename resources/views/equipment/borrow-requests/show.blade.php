@@ -1,5 +1,6 @@
 @php
     $isRequester = $borrowRequest->user_id === auth()->id();
+    $fromApproved = request()->query('from') === 'approved';
 @endphp
 
 <x-app-layout>
@@ -12,8 +13,8 @@
                 <p class="text-gray-600 dark:text-gray-400">Request ID: {{ $borrowRequest->id }}</p>
             </div>
             <div x-data class="flex items-center space-x-3">
-                <a href="{{ $isRequester ? route('borrower.requests', 'equipment') : route('equipment.borrow-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                    {{ $isRequester ? 'Back to My Requests' : 'Back to Borrowing Requests' }}
+                <a href="{{ $isRequester ? route($fromApproved ? 'borrower.approved' : 'borrower.requests', 'equipment') : route('equipment.borrow-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    {{ $isRequester ? ($fromApproved ? 'Back to Approved' : 'Back to Requests') : 'Back to Borrowing Requests' }}
                 </a>
                 @if($borrowRequest->items->first()?->equipment->owner && $borrowRequest->items->first()->equipment->owner->id !== auth()->id())
                     <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
