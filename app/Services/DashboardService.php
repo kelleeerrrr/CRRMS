@@ -515,7 +515,7 @@ class DashboardService
 
     public function getLatestAnnouncements(int $limit = 5): array
     {
-        return Announcement::where('published_at', '<=', now())
+        return Announcement::with('createdBy')->where('published_at', '<=', now())
             ->where(function ($q) {
                 $q->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
@@ -526,6 +526,7 @@ class DashboardService
             ->get()
             ->map(fn($announcement) => [
                 'title' => $announcement->title,
+                'author' => $announcement->createdBy?->name ?? 'Unknown author',
                 'category' => $announcement->category,
                 'published_at' => $announcement->published_at->diffForHumans(),
             ])

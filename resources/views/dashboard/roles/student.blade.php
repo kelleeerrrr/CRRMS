@@ -91,6 +91,13 @@
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <x-dashboard.line-chart :data="$monthlyActivity" title="Monthly Activity" />
-        <x-dashboard.activity-timeline :activities="$latestAnnouncements" title="Latest Announcements" />
+        <x-dashboard.activity-timeline
+            :activities="array_map(fn ($announcement) => [
+                'description' => $announcement['title'],
+                'user' => $announcement['author'],
+                'time' => $announcement['published_at'],
+            ], $latestAnnouncements)"
+            title="Latest Announcements"
+        />
     </div>
 </div>
