@@ -14,7 +14,7 @@
     $id = $id ?? $name;
 @endphp
 
-<div {{ $attributes }}>
+<div {{ $attributes->whereDoesntStartWith('wire:model') }}>
     @if($label)
         <label for="{{ $id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {{ $label }}
@@ -25,6 +25,7 @@
     @endif
 
     <select
+        {{ $attributes->whereStartsWith('wire:model') }}
         name="{{ $name }}"
         id="{{ $id }}"
         {{ $required ? 'required' : '' }}

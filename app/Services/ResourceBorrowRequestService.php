@@ -373,15 +373,17 @@ class ResourceBorrowRequestService
         }
 
         if (isset($filters['search'])) {
-            $query->whereHas('resource', function ($q) use ($filters) {
-                $q->where('name', 'like', "%{$filters['search']}%");
-            })->orWhereHas('user', function ($q) use ($filters) {
-                $q->where('name', 'like', "%{$filters['search']}%");
+            $search = "%{$filters['search']}%";
+            $query->where(function ($query) use ($search) {
+                $query->where('borrower_name', 'like', $search)
+                    ->orWhereHas('resource', fn ($resource) => $resource->where('name', 'like', $search))
+                    ->orWhereHas('user', fn ($user) => $user->where('name', 'like', $search));
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(12);
+        return $query->latest()->paginate(12)->withQueryString();
     }
+
 
     public function getResourcePendingRequests(Resource $resource)
     {

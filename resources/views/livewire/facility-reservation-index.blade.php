@@ -8,9 +8,9 @@
     <x-card class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <x-input
-                type="text"
+                type="search"
                 name="search"
-                wire:model.live="search"
+                wire:model.live.debounce.200ms="search"
                 placeholder="Search by name, contact, or facility..."
                 label="Search"
             />
@@ -18,20 +18,27 @@
             <x-select
                 name="status"
                 wire:model.live="status"
+                placeholder=""
                 label="Status"
                 :options="[
                     '' => 'All Status',
                     'pending' => 'Pending',
                     'approved' => 'Approved',
+                    'reserved' => 'Reserved',
+                    'checked_in' => 'Checked In',
+                    'completed' => 'Completed',
                     'rejected' => 'Rejected',
                     'cancelled' => 'Cancelled'
                 ]"
             />
         </div>
         
-        <div class="mt-4 flex justify-end">
+                <div class="mt-4 flex min-h-9 items-center justify-between gap-3">
+            <div role="status" class="mr-auto text-sm font-medium text-blue-700 dark:text-blue-300">
+                <span wire:dirty wire:target="search,status" style="display: none">Searching…</span>
+            </div>
             <x-button variant="ghost" wire:click="resetFilters">
-                Reset Filters
+                Reset
             </x-button>
         </div>
     </x-card>

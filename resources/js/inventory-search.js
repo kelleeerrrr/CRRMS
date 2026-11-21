@@ -3,7 +3,7 @@ const results = document.querySelector('[data-inventory-results]');
 const header = document.querySelector('[data-inventory-header]');
 const status = document.querySelector('[data-inventory-search-status]');
 
-if (form && results && header && status) {
+if (form && results && status) {
     let timer;
     let pendingRequest;
 
@@ -24,10 +24,10 @@ if (form && results && header && status) {
 
             const nextResults = page.querySelector('[data-inventory-results]');
             const nextHeader = page.querySelector('[data-inventory-header]');
-            if (!nextResults || !nextHeader) throw new Error('Inventory response is incomplete');
+            if (!nextResults || (header && !nextHeader)) throw new Error('Inventory response is incomplete');
 
             results.replaceChildren(...nextResults.childNodes);
-            header.replaceChildren(...nextHeader.childNodes);
+            if (header) header.replaceChildren(...nextHeader.childNodes);
             window.history.replaceState(window.history.state, '', url);
         } catch (error) {
             if (!request.signal.aborted) window.location.assign(url);
