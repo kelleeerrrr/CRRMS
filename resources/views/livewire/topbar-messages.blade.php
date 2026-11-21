@@ -16,7 +16,7 @@
 
         <ul class="max-h-96 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
             @forelse($recentMessages as $message)
-                <li wire:key="topbar-message-{{ $message->id }}" class="p-4">
+                <li wire:key="topbar-message-sender-{{ $message->sender_id }}" class="p-4">
                     <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
                         {{ $message->sender?->name ?? 'Unknown sender' }}
                         @if($message->conversation?->name)

@@ -330,9 +330,19 @@ class ChatService
             ->reverse();
     }
 
-    public function getRecentIncomingMessages(User $user): Collection
+    public function getLatestIncomingMessagesBySender(User $user): Collection
     {
-        return $this->incomingMessages($user)
+        $rankedMessages = $this->incomingMessages($user)
+            ->select('messages.id')
+            ->selectRaw('ROW_NUMBER() OVER (
+                PARTITION BY messages.sender_id
+                ORDER BY messages.created_at DESC, messages.id DESC
+            ) AS sender_rank');
+
+        return Message::query()
+            ->select('messages.*')
+            ->joinSub($rankedMessages, 'ranked_messages', 'ranked_messages.id', '=', 'messages.id')
+            ->where('ranked_messages.sender_rank', 1)
             ->with(['sender:id,name', 'conversation:id,name'])
             ->latest('messages.created_at')
             ->orderByDesc('messages.id')
