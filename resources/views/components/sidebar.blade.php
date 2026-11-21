@@ -27,12 +27,12 @@
             ],
         ],
         [
-            'title' => 'MY ACTIVITY',
+            'title' => 'ACTIVITY',
             'icon' => 'heroicon-o-clipboard-document-list',
             'items' => [
-                ['title' => 'My Requests', 'route' => 'my-lending.requests', 'active' => $currentRoute === 'my-lending.requests'],
-                ['title' => 'My Borrowing', 'route' => 'my-lending.borrowing', 'active' => $currentRoute === 'my-lending.borrowing'],
-                ['title' => 'My Lending', 'route' => 'resources.my-lending', 'active' => $currentRoute === 'resources.my-lending'],
+                ['title' => 'Requests', 'route' => 'my-lending.requests', 'active' => $currentRoute === 'my-lending.requests'],
+                ['title' => 'Borrowing', 'route' => 'my-lending.borrowing', 'active' => $currentRoute === 'my-lending.borrowing'],
+                ['title' => 'Lending', 'route' => 'resources.my-lending', 'active' => $currentRoute === 'resources.my-lending'],
             ],
         ],
         [
