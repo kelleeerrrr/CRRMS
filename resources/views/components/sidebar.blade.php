@@ -23,7 +23,13 @@
             'items' => [
                 ['title' => 'School Facilities', 'route' => 'facilities.index', 'active' => $currentRoute === 'facilities.index'],
                 ['title' => 'School Equipment', 'route' => 'equipment.index', 'active' => $currentRoute === 'equipment.index'],
-                ['title' => 'Other Resources', 'route' => 'resources.index', 'active' => str_starts_with($currentRoute, 'resources') && !str_starts_with($currentRoute, 'my-lending')],
+                ['title' => 'Other Resources', 'route' => 'resources.index', 'active' => str_starts_with($currentRoute, 'resources') && $currentRoute !== 'resources.my-lending'],
+            ],
+        ],
+        [
+            'title' => 'BORROWING & LENDING',
+            'icon' => 'heroicon-o-clipboard-document-list',
+            'items' => [
                 ['title' => 'My Requests', 'route' => 'my-lending.requests', 'active' => $currentRoute === 'my-lending.requests'],
                 ['title' => 'My Borrowing', 'route' => 'my-lending.borrowing', 'active' => $currentRoute === 'my-lending.borrowing'],
                 ['title' => 'My Lending', 'route' => 'resources.my-lending', 'active' => $currentRoute === 'resources.my-lending'],
@@ -34,12 +40,6 @@
             'icon' => 'heroicon-o-calendar',
             'route' => 'calendar.index',
             'active' => $currentRoute === 'calendar.index',
-        ],
-        [
-            'title' => 'Profile',
-            'icon' => 'heroicon-o-user',
-            'route' => 'profile.edit',
-            'active' => $currentRoute === 'profile.edit',
         ],
     ];
 
@@ -225,9 +225,11 @@
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $user->name }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $user->email }}</p>
             </div>
-            <a href="{{ route('profile.edit') }}" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <x-heroicon-o-wrench class="w-5 h-5" />
-            </a>
+            @if(in_array($role, ['school_officer', 'admin', 'super_admin'], true))
+                <a href="{{ route('profile.edit') }}" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <x-heroicon-o-wrench class="w-5 h-5" />
+                </a>
+            @endif
         </div>
     </div>
 </aside>
