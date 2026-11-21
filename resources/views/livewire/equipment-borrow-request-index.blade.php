@@ -78,7 +78,10 @@
                             @endphp
                             <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                                 <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->created_at->format('M d, Y H:i') }}
+                                    <div class="whitespace-nowrap">
+                                        <a href="{{ route('equipment.borrow-requests.show', $request) }}" class="font-semibold text-blue-700 hover:underline dark:text-blue-400">View details</a>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $request->created_at->format('M d, Y H:i') }}</p>
+                                    </div>
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex items-center">
@@ -108,9 +111,6 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex items-center space-x-2">
-                                        <a href="{{ route('equipment.borrow-requests.show', $request) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
-                                            View
-                                        </a>
                                         @if(auth()->user()->can('approve', $request) && $request->status === 'pending')
                                             <button wire:click="approve('{{ $request->id }}')" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm">
                                                 Approve
