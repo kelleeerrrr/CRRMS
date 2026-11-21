@@ -1,14 +1,20 @@
 <x-app-layout>
-    <x-slot name="title">Add Facility</x-slot>
+    @php($editing = isset($facility))
+    <x-slot name="title">{{ $editing ? 'Edit Facility' : 'Add Facility' }}</x-slot>
 
     <x-slot name="header">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Add Facility</h1>
-        <p class="text-gray-600 dark:text-gray-400">Create a new facility</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $editing ? 'Edit Facility' : 'Add Facility' }}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{{ $editing ? 'Update facility details' : 'Create a new facility' }}</p>
     </x-slot>
 
     <x-card>
-        <form method="POST" action="{{ route('facilities.store') }}">
+        <form method="POST" action="{{ $editing ? route('facilities.update', $facility) : route('facilities.store') }}" enctype="multipart/form-data">
             @csrf
+            @if($editing)
+                @method('PUT')
+            @endif
+
+            <x-input-error :messages="$errors->all()" class="mb-4" />
             
             <!-- 1. Basic Information -->
             <div class="mb-8">
@@ -17,12 +23,14 @@
                     <x-input
                         type="text"
                         name="name"
+                        :value="$facility->name ?? null"
                         label="Facility Name"
                         required
                     />
 
                     <x-select
                         name="type"
+                        :value="$facility->type ?? null"
                         label="Facility Type"
                         required
                         :options="[
@@ -38,9 +46,9 @@
                 </div>
 
                 <div class="mt-6">
-                    <x-input
-                        type="textarea"
-                        name="location_address"
+                    <x-textarea
+                                                name="location_address"
+                                                :value="$facility->location_address ?? null"
                         label="Location Address"
                         rows="3"
                     />
@@ -54,6 +62,7 @@
                     <x-input
                         type="number"
                         name="capacity"
+                        :value="$facility->capacity ?? null"
                         label="Capacity"
                         required
                         min="1"
@@ -63,30 +72,13 @@
                 <div class="mt-6">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Amenities / Features</label>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Projector" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Projector</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Air Conditioning" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Air Conditioning</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Wi-Fi" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Wi-Fi</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Whiteboard" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Whiteboard</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Computers" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Computers</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="amenities[]" value="Sound System" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Sound System</span>
-                        </label>
+                        @php($selectedAmenities = old('amenities', $errors->any() ? [] : ($facility->amenities ?? [])))
+                        @foreach(array_unique(array_merge(['Projector', 'Air Conditioning', 'Wi-Fi', 'Whiteboard', 'Computers', 'Sound System'], $facility->amenities ?? [])) as $amenity)
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="amenities[]" value="{{ $amenity }}" @checked(in_array($amenity, $selectedAmenities)) class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ $amenity }}</span>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -97,6 +89,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <x-select
                         name="status"
+                        :value="$facility->status ?? null"
                         label="Status"
                         required
                         :options="[
@@ -109,6 +102,7 @@
                     <x-input
                         type="text"
                         name="operating_days"
+                        :value="$facility->operating_days ?? null"
                         label="Operating Days"
                         placeholder="e.g., Monday - Friday"
                     />
@@ -116,12 +110,14 @@
                     <x-input
                         type="time"
                         name="opening_time"
+                        :value="substr($facility->opening_time ?? '', 0, 5)"
                         label="Opening Time"
                     />
 
                     <x-input
                         type="time"
                         name="closing_time"
+                        :value="substr($facility->closing_time ?? '', 0, 5)"
                         label="Closing Time"
                     />
                 </div>
@@ -134,6 +130,7 @@
                     <x-input
                         type="number"
                         name="max_reservation_duration"
+                        :value="$facility->max_reservation_duration ?? null"
                         label="Maximum Reservation Duration (hours)"
                         min="1"
                     />
@@ -141,15 +138,16 @@
                     <x-input
                         type="number"
                         name="advance_booking_requirement"
+                        :value="$facility->advance_booking_requirement ?? null"
                         label="Advance Booking Requirement (days)"
                         min="0"
                     />
                 </div>
 
                 <div class="mt-6">
-                    <x-input
-                        type="textarea"
-                        name="rules"
+                    <x-textarea
+                                                name="rules"
+                                                :value="$facility->rules ?? null"
                         label="Reservation Notes / Restrictions"
                         rows="3"
                     />
@@ -159,9 +157,7 @@
             <!-- 6. Facility Image -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">6. Facility Image</h2>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Facility Photo (upload feature coming soon)</label>
-                <input type="file" name="photos[]" multiple class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300 disabled:opacity-50 disabled:pointer-events-none" disabled>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Photo upload will be implemented later</p>
+                <x-image-picker name="photos" label="Facility photos" multiple />
             </div>
 
             <!-- 7. Management Information -->
@@ -171,20 +167,22 @@
                     <x-input
                         type="text"
                         name="person_in_charge"
+                        :value="$facility->person_in_charge ?? null"
                         label="Office / Person in Charge"
                     />
 
                     <x-input
                         type="text"
                         name="contact_information"
+                        :value="$facility->contact_information ?? null"
                         label="Contact Information"
                     />
                 </div>
 
                 <div class="mt-6">
-                    <x-input
-                        type="textarea"
-                        name="special_instructions"
+                    <x-textarea
+                                                name="special_instructions"
+                                                :value="$facility->special_instructions ?? null"
                         label="Special Instructions"
                         rows="3"
                     />
@@ -196,7 +194,7 @@
                     Cancel
                 </a>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Create Facility
+                    {{ $editing ? 'Save Changes' : 'Create Facility' }}
                 </button>
             </div>
         </form>

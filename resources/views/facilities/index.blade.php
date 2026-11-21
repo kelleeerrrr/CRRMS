@@ -7,18 +7,16 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">School Facilities</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage school facilities inventory</p>
             </div>
-            @if($facilities->count() === 0)
-                @if(auth()->user()->roles()->first()?->name === 'school_officer')
-                    <a href="{{ route('facilities.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-plus class="w-5 h-5 mr-2" />
-                        Add Facility
-                    </a>
-                @else
-                    <a href="{{ route('facilities.reservations.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-plus class="w-5 h-5 mr-2" />
-                        Reserve Facility
-                    </a>
-                @endif
+            @if(auth()->user()->hasRole('school_officer'))
+                <a href="{{ route('facilities.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <x-heroicon-o-plus class="w-5 h-5 mr-2" />
+                    Add Facility
+                </a>
+            @elseif($facilities->isEmpty())
+                <a href="{{ route('facilities.reservations.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <x-heroicon-o-plus class="w-5 h-5 mr-2" />
+                    Reserve Facility
+                </a>
             @endif
         </div>
     </x-slot>
@@ -50,7 +48,7 @@
             
             <div class="mt-4 flex justify-end">
                 <x-button variant="ghost" type="submit">Filter</x-button>
-                <x-button variant="ghost" type="a" href="{{ route('facilities.index') }}">Reset</x-button>
+                <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('facilities.index') }}">Reset</a>
             </div>
         </form>
     </x-card>
@@ -84,8 +82,8 @@
                     </div>
 
                     <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
-                        @if(auth()->user()->roles()->first()?->name === 'school_officer')
-                            <a href="#" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                        @if(auth()->user()->hasRole('school_officer'))
+                            <a href="{{ route('facilities.edit', $facility) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                 Edit
                             </a>
                         @else
@@ -93,7 +91,7 @@
                                 Reserve Now
                             </a>
                         @endif
-                        @if(auth()->user()->roles()->first()?->name !== 'school_officer')
+                        @if(!auth()->user()->hasRole('school_officer'))
                             <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="resource_type" value="facility">

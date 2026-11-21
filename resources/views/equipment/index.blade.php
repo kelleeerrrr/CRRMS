@@ -7,18 +7,16 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">School Equipment</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage school equipment inventory</p>
             </div>
-            @if($equipment->count() === 0)
-                @if(auth()->user()->roles()->first()?->name === 'school_officer')
-                    <a href="{{ route('equipment.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-plus class="w-5 h-5 mr-2" />
-                        Add Equipment
-                    </a>
-                @else
-                    <a href="{{ route('equipment.borrow-requests.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-plus class="w-5 h-5 mr-2" />
-                        Borrow Equipment
-                    </a>
-                @endif
+            @if(auth()->user()->hasRole('school_officer'))
+                <a href="{{ route('equipment.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <x-heroicon-o-plus class="w-5 h-5 mr-2" />
+                    Add Equipment
+                </a>
+            @elseif($equipment->isEmpty())
+                <a href="{{ route('equipment.borrow-requests.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <x-heroicon-o-plus class="w-5 h-5 mr-2" />
+                    Borrow Equipment
+                </a>
             @endif
         </div>
     </x-slot>
@@ -39,26 +37,31 @@
                     name="category_id"
                     :value="$category_id"
                     label="Category"
-                    :options="['' => 'All Categories'] + $categories->pluck('name', 'id')->toArray()"
+                    placeholder=""
+                    :options="['' => 'All Categories'] + array_combine(
+                        $types = ['Computer', 'Projector', 'Audio Equipment', 'Laboratory Equipment', 'Sports Equipment', 'Office Equipment', 'Other'],
+                        $types
+                    ) + $categories->pluck('name', 'id')->toArray()"
                 />
                 
                 <x-select
                     name="status"
+                    placeholder=""
                     :value="$status"
                     label="Status"
                     :options="[
                         '' => 'All Status',
-                        'available' => 'Available',
-                        'in_use' => 'In Use',
-                        'maintenance' => 'Maintenance',
-                        'unavailable' => 'Unavailable'
+                        'Available' => 'Available',
+                        'Unavailable' => 'Unavailable',
+                        'Under Maintenance' => 'Under Maintenance',
+                        'Retired' => 'Retired'
                     ]"
                 />
             </div>
             
             <div class="mt-4 flex justify-end">
                 <x-button variant="ghost" type="submit">Filter</x-button>
-                <x-button variant="ghost" type="a" href="{{ route('equipment.index') }}">Reset</x-button>
+                <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('equipment.index') }}">Reset</a>
             </div>
         </form>
     </x-card>
@@ -71,13 +74,13 @@
                     <div class="flex items-start justify-between mb-4">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>
-                            @if($item->category)
+                            @if($item->equipment_category || $item->category)
                                 <span class="inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full mt-1">
-                                    {{ $item->category->name }}
+                                    {{ $item->equipment_category ?? $item->category->name }}
                                 </span>
                             @endif
                         </div>
-                        <x-status-badge :status="$item->status" />
+                        <x-status-badge :status="$item->availability_status ?? $item->status" />
                     </div>
 
                     @if($item->description)
@@ -108,8 +111,8 @@
                     </div>
 
                     <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
-                        @if(auth()->user()->roles()->first()?->name === 'school_officer')
-                            <a href="#" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                        @if(auth()->user()->hasRole('school_officer'))
+                            <a href="{{ route('equipment.edit', $item) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                 Edit
                             </a>
                         @else
@@ -123,7 +126,7 @@
                                 </span>
                             @endif
                         @endif
-                        @if(auth()->user()->roles()->first()?->name !== 'school_officer')
+                        @if(!auth()->user()->hasRole('school_officer'))
                             <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="resource_type" value="equipment">

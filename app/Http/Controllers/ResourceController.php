@@ -19,16 +19,27 @@ class ResourceController extends Controller
         $this->borrowRequestService = $borrowRequestService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // $this->authorize('viewAny', Resource::class);
+        $search = trim($request->string('search')->toString());
+        $status = $request->string('status')->toString();
 
         $resources = Resource::with('owner')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('category', 'like', "%{$search}%");
+                });
+            })
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('resources.index', compact('resources'));
+        return view('resources.index', compact('resources', 'search', 'status'));
     }
+
 
     public function create()
     {
@@ -64,9 +75,6 @@ class ResourceController extends Controller
             $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
         }
 
-        // Convert boolean
-        $validated['available_for_borrowing'] = $request->has('available_for_borrowing');
-
         // The creator is always the owner
         $validated['owner_type'] = 'user';
         $validated['owner_id'] = Auth::id();
@@ -101,7 +109,7 @@ class ResourceController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'condition' => 'required|in:excellent,good,fair,poor,damaged',
+            'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
             'status' => 'required|in:available,borrowed,unavailable,maintenance',
             'lending_conditions' => 'nullable|string',
             'building_id' => 'nullable|uuid|exists:buildings,id',

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Facility;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class FacilityController extends Controller
 {
@@ -13,7 +12,7 @@ class FacilityController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
 
-        $query = Facility::query();
+        $query = Facility::with('room');
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -23,7 +22,7 @@ class FacilityController extends Controller
             $query->where('status', $status);
         }
 
-        $facilities = $query->orderBy('name')->paginate(12);
+        $facilities = $query->orderBy('name')->paginate(12)->withQueryString();
 
         return view('facilities.index', compact('facilities', 'search', 'status'));
     }
@@ -33,17 +32,43 @@ class FacilityController extends Controller
         return view('facilities.create');
     }
 
+    public function edit(Request $request, Facility $facility)
+    {
+        abort_unless($request->user()->hasRole('school_officer'), 403);
+
+        return view('facilities.create', compact('facility'));
+    }
+
+    public function update(Request $request, Facility $facility)
+    {
+        abort_unless($request->user()->hasRole('school_officer'), 403);
+
+        $facility->update($this->validatedData($request, $facility));
+
+        return redirect()->route('facilities.index')
+            ->with('success', 'Facility updated successfully.');
+    }
+
     public function store(Request $request)
+    {
+        Facility::create($this->validatedData($request));
+
+        return redirect()->route('facilities.index')
+            ->with('success', 'Facility created successfully.');
+    }
+
+    private function validatedData(Request $request, ?Facility $facility = null): array
     {
         $validated = $request->validate([
             // Basic Information
             'name' => 'required|string|max:255',
-            'type' => 'required|string|max:100',
+            'type' => 'required|in:Classroom,Laboratory,Auditorium,Conference Room,Function Room,Sports Facility,Other',
             'location_address' => 'nullable|string',
             
             // Capacity & Amenities
             'capacity' => 'required|integer|min:1',
             'amenities' => 'nullable|array',
+            'amenities.*' => 'required|string|max:255',
             
             // Availability
             'status' => 'required|in:available,unavailable,maintenance',
@@ -58,6 +83,7 @@ class FacilityController extends Controller
             
             // Facility Image
             'photos' => 'nullable|array',
+            'photos.*' => 'required|image|max:10240',
             
             // Management Information
             'person_in_charge' => 'nullable|string|max:255',
@@ -65,9 +91,17 @@ class FacilityController extends Controller
             'special_instructions' => 'nullable|string',
         ]);
 
-        Facility::create($validated);
+        $validated['amenities'] = $validated['amenities'] ?? [];
 
-        return redirect()->route('facilities.index')
-            ->with('success', 'Facility created successfully.');
+        unset($validated['photos']);
+
+        if ($request->hasFile('photos')) {
+            $validated['photos'] = array_merge(
+                $facility?->photos ?? [],
+                array_map(fn ($photo) => $photo->store('facility-photos', 'public'), $request->file('photos'))
+            );
+        }
+
+        return $validated;
     }
 }

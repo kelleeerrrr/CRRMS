@@ -44,16 +44,16 @@
 
                         <!-- Flash Messages -->
                         @if(session('success'))
-                            @include('components.toast', ['type' => 'success', 'message' => session('success')])
+                            <x-toast type="success" :message="session('success')" />
                         @endif
                         @if(session('error'))
-                            @include('components.toast', ['type' => 'error', 'message' => session('error')])
+                            <x-toast type="error" :message="session('error')" />
                         @endif
                         @if(session('warning'))
-                            @include('components.toast', ['type' => 'warning', 'message' => session('warning')])
+                            <x-toast type="warning" :message="session('warning')" />
                         @endif
                         @if(session('info'))
-                            @include('components.toast', ['type' => 'info', 'message' => session('info')])
+                            <x-toast type="info" :message="session('info')" />
                         @endif
 
                         <!-- Page Content -->

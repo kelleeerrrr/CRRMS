@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [FacilityController::class, 'index'])->name('index');
         Route::get('/create', [FacilityController::class, 'create'])->name('create');
         Route::post('/', [FacilityController::class, 'store'])->name('store');
+        Route::get('/{facility}/edit', [FacilityController::class, 'edit'])->name('edit');
+        Route::put('/{facility}', [FacilityController::class, 'update'])->name('update');
         
         // Facility Reservations
         Route::prefix('reservations')->name('reservations.')->group(function () {
@@ -71,6 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])->name('index');
         Route::get('/create', [EquipmentController::class, 'create'])->name('create');
         Route::post('/', [EquipmentController::class, 'store'])->name('store');
+        Route::get('/{equipment}/edit', [EquipmentController::class, 'edit'])->name('edit');
+        Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
         
         // Equipment Borrow Requests
         Route::prefix('borrow-requests')->name('borrow-requests.')->group(function () {

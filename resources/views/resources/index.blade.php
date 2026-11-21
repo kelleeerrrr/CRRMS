@@ -22,6 +22,40 @@
         </div>
     </x-slot>
 
+    <!-- Filters -->
+    <x-card class="mb-6">
+        <form method="GET" action="{{ route('resources.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-input
+                    type="text"
+                    name="search"
+                    :value="$search"
+                    placeholder="Search resources..."
+                    label="Search"
+                />
+
+                <x-select
+                    name="status"
+                    placeholder=""
+                    :value="$status"
+                    label="Status"
+                    :options="[
+                        '' => 'All Status',
+                        'available' => 'Available',
+                        'borrowed' => 'Borrowed',
+                        'maintenance' => 'Maintenance',
+                        'unavailable' => 'Unavailable'
+                    ]"
+                />
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <x-button variant="ghost" type="submit">Filter</x-button>
+                <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('resources.index') }}">Reset</a>
+            </div>
+        </form>
+    </x-card>
+
     @if($resources->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($resources as $resource)
@@ -91,7 +125,7 @@
             <div class="text-center py-12">
                 <x-heroicon-o-cube class="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No resources available</h3>
-                <p class="text-gray-600 dark:text-gray-400">Check back later for available resources</p>
+                <p class="text-gray-600 dark:text-gray-400">{{ $search !== '' || $status !== '' ? 'Try a different search or status.' : 'Check back later for available resources.' }}</p>
             </div>
         </x-card>
     @endif

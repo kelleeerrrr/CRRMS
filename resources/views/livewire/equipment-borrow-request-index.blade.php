@@ -40,15 +40,11 @@
 
     <!-- Flash Messages -->
     @if(session('success'))
-        <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded-lg">
-            {{ session('success') }}
-        </div>
+        <x-toast type="success" :message="session('success')" />
     @endif
 
     @if(session('error'))
-        <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded-lg">
-            {{ session('error') }}
-        </div>
+        <x-toast type="error" :message="session('error')" />
     @endif
 
     <!-- Requests Table -->
