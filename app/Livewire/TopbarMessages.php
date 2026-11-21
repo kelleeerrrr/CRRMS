@@ -14,7 +14,7 @@ class TopbarMessages extends Component
         $user = Auth::user();
 
         return view('livewire.topbar-messages', [
-            'recentMessages' => $chat->getRecentMessages($user),
+            'recentMessages' => $chat->getRecentIncomingMessages($user),
             'unreadCount' => $chat->getUnreadMessageCount($user),
         ]);
     }

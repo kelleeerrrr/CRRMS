@@ -18,7 +18,7 @@
             @forelse($recentMessages as $message)
                 <li wire:key="topbar-message-{{ $message->id }}" class="p-4">
                     <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                        {{ $message->sender_id === auth()->id() ? 'You' : ($message->sender?->name ?? 'System') }}
+                        {{ $message->sender?->name ?? 'Unknown sender' }}
                         @if($message->conversation?->name)
                             <span class="font-normal text-gray-500 dark:text-gray-400">· {{ $message->conversation->name }}</span>
                         @endif
@@ -27,7 +27,7 @@
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $message->created_at->diffForHumans() }}</p>
                 </li>
             @empty
-                <li class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No messages yet</li>
+                <li class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No incoming messages yet</li>
             @endforelse
         </ul>
 

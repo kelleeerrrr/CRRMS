@@ -330,9 +330,9 @@ class ChatService
             ->reverse();
     }
 
-    public function getRecentMessages(User $user): Collection
+    public function getRecentIncomingMessages(User $user): Collection
     {
-        return $this->visibleMessages($user)
+        return $this->incomingMessages($user)
             ->with(['sender:id,name', 'conversation:id,name'])
             ->latest('messages.created_at')
             ->orderByDesc('messages.id')
@@ -342,8 +342,7 @@ class ChatService
 
     public function getUnreadMessageCount(User $user): int
     {
-        return $this->visibleMessages($user)
-            ->where('messages.sender_id', '!=', $user->id)
+        return $this->incomingMessages($user)
             ->where(function (Builder $query) {
                 $query->whereNull('conversation_participants.last_read_at')
                     ->orWhereColumn('conversation_participants.last_read_at', '<', 'messages.created_at');
@@ -352,12 +351,13 @@ class ChatService
             ->count('messages.conversation_id');
     }
 
-    private function visibleMessages(User $user): Builder
+    private function incomingMessages(User $user): Builder
     {
         return Message::query()
             ->select('messages.*')
             ->join('conversation_participants', 'conversation_participants.conversation_id', '=', 'messages.conversation_id')
             ->where('conversation_participants.user_id', $user->id)
+            ->where('messages.sender_id', '!=', $user->id)
             ->whereNull('conversation_participants.left_at')
             ->where('messages.is_deleted', false);
     }
