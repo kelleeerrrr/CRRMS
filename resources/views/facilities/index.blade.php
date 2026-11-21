@@ -46,7 +46,8 @@
                 />
             </div>
             
-            <div class="mt-4 flex justify-end">
+            <div class="mt-4 flex min-h-9 items-center gap-3">
+                <span data-inventory-search-status role="status" class="mr-auto text-sm font-medium text-blue-700 dark:text-blue-300"></span>
                 <noscript><x-button type="submit">Search</x-button></noscript>
                 <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('facilities.index') }}">Reset</a>
             </div>

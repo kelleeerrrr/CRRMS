@@ -157,7 +157,7 @@
             <!-- 6. Facility Image -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">6. Facility Image</h2>
-                <x-image-picker name="photos" label="Facility photos" multiple />
+                <x-image-picker name="photos" label="Add facility photos" :saved="$facility->photos ?? []" multiple />
             </div>
 
             <!-- 7. Management Information -->

@@ -1,4 +1,6 @@
-@props(['name', 'label', 'multiple' => false])
+@props(['name', 'label', 'multiple' => false, 'saved' => []])
+
+<x-saved-photos :paths="$saved" />
 
 <label for="{{ $name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ $label }}</label>
 <input type="file" id="{{ $name }}" name="{{ $name }}{{ $multiple ? '[]' : '' }}" accept="image/*" @if($multiple) multiple @endif

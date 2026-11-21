@@ -127,7 +127,7 @@
                 />
 
                 <div>
-                    <x-image-picker name="equipment_photo" label="Equipment photo" />
+                    <x-image-picker name="equipment_photo" :label="empty($equipment->equipment_photo) ? 'Equipment photo' : 'Replace equipment photo'" :saved="empty($equipment->equipment_photo) ? [] : [$equipment->equipment_photo]" />
                 </div>
             </div>
 

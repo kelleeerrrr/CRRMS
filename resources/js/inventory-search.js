@@ -1,8 +1,9 @@
 const form = document.querySelector('[data-inventory-search]');
 const results = document.querySelector('[data-inventory-results]');
 const header = document.querySelector('[data-inventory-header]');
+const status = document.querySelector('[data-inventory-search-status]');
 
-if (form && results && header) {
+if (form && results && header && status) {
     let timer;
     let pendingRequest;
 
@@ -33,6 +34,7 @@ if (form && results && header) {
         } finally {
             if (pendingRequest === request && !request.signal.aborted) {
                 results.setAttribute('aria-busy', 'false');
+                status.textContent = '';
             }
         }
     }
@@ -41,12 +43,13 @@ if (form && results && header) {
         clearTimeout(timer);
         pendingRequest?.abort();
         results.setAttribute('aria-busy', 'true');
+        status.textContent = 'Searching…';
         timer = setTimeout(updateResults, delay);
     }
 
     form.addEventListener('input', (event) => {
         if (event.target.matches('input[type="search"]') && !event.isComposing) {
-            scheduleUpdate(300);
+            scheduleUpdate(200);
         }
     });
     form.addEventListener('change', (event) => {

@@ -5,12 +5,16 @@
     </x-slot>
 
     <x-card class="max-w-2xl mx-auto">
-        <form method="POST" action="{{ route('resources.update', $resource) }}">
+        <form method="POST" action="{{ route('resources.update', $resource) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <x-input-error :messages="$errors->all()" class="mb-4" />
 
             <div class="space-y-6">
+                <div>
+                    <x-image-picker name="photo" :label="$resource->photo ? 'Replace resource photo' : 'Resource photo'" :saved="$resource->photo ? [$resource->photo] : []" />
+                </div>
+
                 <x-input
                     name="name"
                     type="text"

@@ -112,9 +112,17 @@ class ResourceController extends Controller
             'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
             'status' => 'required|in:available,borrowed,unavailable,maintenance',
             'lending_conditions' => 'nullable|string',
+            'photo' => 'nullable|image|max:10240',
             'building_id' => 'nullable|uuid|exists:buildings,id',
             'room_id' => 'nullable|uuid|exists:rooms,id',
         ]);
+
+        unset($validated['photo']);
+
+        if ($request->hasFile('photo')) {
+            abort_unless($resource->isUserOwned() && $resource->owner_id === $request->user()->id, 403);
+            $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
+        }
 
         $resource->update($validated);
 
