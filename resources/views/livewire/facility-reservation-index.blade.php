@@ -58,7 +58,8 @@
                             <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</th>
                             <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">End Date</th>
                             <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                            <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                            <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Details</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,11 +92,7 @@
                                     <x-status-badge :status="$reservation->status" />
                                 </td>
                                 <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-2">
-                                        <a href="{{ route('facilities.reservations.show', $reservation) }}"
-                                            class="inline-flex items-center rounded-lg border border-blue-600 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
-                                            View
-                                        </a>
+                                    <div class="flex items-center justify-center gap-2">
                                         @if(auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
                                             <button wire:click="approve('{{ $reservation->id }}')" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm">
                                                 Approve
@@ -105,6 +102,12 @@
                                             </button>
                                         @endif
                                     </div>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <a href="{{ route('facilities.reservations.show', $reservation) }}"
+                                        class="inline-flex items-center rounded-lg border border-blue-600 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
