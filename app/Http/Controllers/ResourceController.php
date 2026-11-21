@@ -169,7 +169,7 @@ class ResourceController extends Controller
                 Auth::user()
             );
 
-            return redirect()->route('resources.my-borrowing')
+            return redirect()->route('borrower.requests', 'resources')
                 ->with('success', 'Borrow request submitted successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -202,12 +202,12 @@ class ResourceController extends Controller
         return view('resource-borrow-requests.edit', compact('request'));
     }
 
-    public function updateBorrowRequest(UpdateResourceBorrowRequest $request, ResourceBorrowRequest $borrowRequest)
+    public function updateBorrowRequest(UpdateResourceBorrowRequest $httpRequest, ResourceBorrowRequest $request)
     {
         try {
             $borrowRequest = $this->borrowRequestService->updateBorrowRequest(
-                $borrowRequest,
-                $request->validated(),
+                $request,
+                $httpRequest->validated(),
                 Auth::user()
             );
 
@@ -223,7 +223,7 @@ class ResourceController extends Controller
         try {
             $this->borrowRequestService->cancelBorrowRequest($request, Auth::user());
 
-            return redirect()->route('resources.my-borrowing')
+            return redirect()->route('borrower.requests', 'resources')
                 ->with('success', 'Borrow request cancelled successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

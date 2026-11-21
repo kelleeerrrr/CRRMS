@@ -22,6 +22,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\MyLendingController;
+use App\Http\Controllers\BorrowerRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,7 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // My Lending
+    Route::prefix('borrower')->name('borrower.')->group(function () {
+        Route::get('/requests/{category}', [BorrowerRequestController::class, 'index'])->name('requests');
+        Route::get('/approved/{category}', [BorrowerRequestController::class, 'index'])->name('approved');
+    });
+
+    // Legacy borrower request pages
     Route::prefix('my-lending')->name('my-lending.')->group(function () {
         Route::get('/requests', [MyLendingController::class, 'requests'])->name('requests');
         Route::get('/borrowing', [MyLendingController::class, 'borrowing'])->name('borrowing');

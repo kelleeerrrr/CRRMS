@@ -12,7 +12,7 @@
             <p class="text-gray-600 dark:text-gray-400">{{ $reservation->facility->name }}</p>
         </div>
         <div x-data class="flex items-center space-x-3">
-            <a href="{{ $isRequester ? route('my-lending.requests') : route('facilities.reservations.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+            <a href="{{ $isRequester ? route('borrower.requests', 'facilities') : route('facilities.reservations.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                 {{ $isRequester ? 'Back to My Requests' : 'Back to Facility Reservations' }}
             </a>
             @if($reservation->facility->owner && $reservation->facility->owner->id !== auth()->id())

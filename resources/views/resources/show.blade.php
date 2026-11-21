@@ -5,7 +5,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $resource->name }}</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Resource details</p>
             </div>
-            <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+            <a href="{{ route('borrower.requests', 'resources') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                 Back to My Requests
             </a>
         </div>
