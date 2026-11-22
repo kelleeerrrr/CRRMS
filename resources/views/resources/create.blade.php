@@ -40,8 +40,7 @@
             <div class="mb-6">
                 <x-textarea
                     name="description"
-                    label="Description*"
-                    required
+                    label="Description"
                     rows="3"
                     placeholder="Provide a detailed description of the resource..."
                 />
@@ -53,12 +52,12 @@
 
             <!-- 2. Quantity and Condition -->
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 mt-8">2. Quantity and Condition</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <x-input
                     type="number"
-                    name="total_quantity"
-                    label="Total Quantity*"
+                    name="available_quantity"
+                    label="Available Quantity*"
                     required
                     min="1"
                 />
@@ -78,73 +77,63 @@
                 />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <x-select
-                    name="status"
-                    label="Availability Status*"
-                    required
-                    :options="[
-                        'available' => 'Available',
-                        'unavailable' => 'Unavailable'
-                    ]"
-                />
-
-                <x-input
-                    type="number"
-                    name="available_quantity"
-                    label="Available Quantity"
-                    placeholder="Calculated automatically"
-                    readonly
-                />
-            </div>
-
             <!-- 3. Lending Settings -->
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 mt-8">3. Lending Settings</h2>
             
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available for Borrowing*</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">For Borrowing?*</label>
                 <div class="flex items-center space-x-4">
                     <label class="flex items-center">
-                        <input type="radio" name="available_for_borrowing" value="1" @checked(old('available_for_borrowing') === '1') required class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="available_for_borrowing" value="1" @checked(old('available_for_borrowing') === '1') required class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" onchange="toggleLendingFields(this.value)">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="available_for_borrowing" value="0" @checked(old('available_for_borrowing') === '0') class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="available_for_borrowing" value="0" @checked(old('available_for_borrowing') === '0') class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" onchange="toggleLendingFields(this.value)">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
                     </label>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <x-input
-                    type="number"
-                    name="max_borrowing_duration"
-                    label="Maximum Borrowing Duration (days)"
-                    placeholder="e.g., 7"
-                    min="1"
-                />
+            <div id="lending-fields" class="@if(old('available_for_borrowing') === '0') hidden @endif">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <x-input
+                        type="number"
+                        name="max_borrowing_duration"
+                        label="Maximum Borrowing Duration (days)"
+                        placeholder="e.g., 7"
+                        min="1"
+                    />
 
-                <x-input
-                    type="text"
-                    name="pickup_location"
-                    label="Preferred Pickup or Handover Location"
-                    placeholder="e.g., Library, Room 101"
-                />
-            </div>
+                    <x-input
+                        type="text"
+                        name="pickup_location"
+                        label="Preferred Pickup or Handover Location"
+                        placeholder="e.g., Library, Room 101"
+                    />
+                </div>
 
-            <div class="mb-6">
-                <x-textarea
-                    name="borrowing_restrictions"
-                    label="Borrowing Restrictions / Instructions"
-                    rows="3"
-                    placeholder="Any restrictions or special instructions for borrowing..."
-                />
+                <div class="mb-6">
+                    <x-textarea
+                        name="borrowing_restrictions"
+                        label="Borrowing Restrictions / Instructions"
+                        rows="3"
+                        placeholder="Any restrictions or special instructions for borrowing..."
+                    />
+                </div>
             </div>
 
             <!-- 4. Contact and Additional Information -->
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 mt-8">4. Contact and Additional Information</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <x-input
+                    type="text"
+                    name="contact_name"
+                    label="Name"
+                    :value="auth()->user()->name"
+                    readonly
+                />
+
                 <x-input
                     type="text"
                     name="contact_number"
@@ -152,8 +141,6 @@
                     :value="auth()->user()->phone_number ?? ''"
                     placeholder="Auto-filled from profile"
                 />
-
-                <div></div>
             </div>
 
             <div class="mb-6">
@@ -175,4 +162,23 @@
             </div>
         </form>
     </x-card>
+
+    <script>
+        function toggleLendingFields(value) {
+            const lendingFields = document.getElementById('lending-fields');
+            if (value === '1') {
+                lendingFields.classList.remove('hidden');
+            } else {
+                lendingFields.classList.add('hidden');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedValue = document.querySelector('input[name="available_for_borrowing"]:checked')?.value;
+            if (selectedValue) {
+                toggleLendingFields(selectedValue);
+            }
+        });
+    </script>
 </x-app-layout>

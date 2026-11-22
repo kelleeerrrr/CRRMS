@@ -57,10 +57,9 @@ class ResourceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
-            'description' => 'required|string',
-            'total_quantity' => 'required|integer|min:1',
+            'description' => 'nullable|string',
+            'available_quantity' => 'required|integer|min:1',
             'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
-            'status' => 'required|in:available,unavailable',
             'available_for_borrowing' => 'required|boolean',
             'max_borrowing_duration' => 'nullable|integer|min:1',
             'pickup_location' => 'nullable|string|max:255',
@@ -74,6 +73,12 @@ class ResourceController extends Controller
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
         }
+
+        // Set total_quantity equal to available_quantity
+        $validated['total_quantity'] = $validated['available_quantity'];
+
+        // Always set status to available for new resources
+        $validated['status'] = 'available';
 
         // The creator is always the owner
         $validated['owner_type'] = 'user';
@@ -107,27 +112,47 @@ class ResourceController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:100',
+            'category' => 'required|string|max:100',
             'description' => 'nullable|string',
+            'available_quantity' => 'required|integer|min:1',
             'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
-            'status' => 'required|in:available,borrowed,unavailable,maintenance',
-            'lending_conditions' => 'nullable|string',
+            'available_for_borrowing' => 'required|boolean',
+            'max_borrowing_duration' => 'nullable|integer|min:1',
+            'pickup_location' => 'nullable|string|max:255',
+            'borrowing_restrictions' => 'nullable|string',
+            'contact_number' => 'nullable|string|max:20',
+            'additional_notes' => 'nullable|string',
             'photo' => 'nullable|image|max:10240',
-            'building_id' => 'nullable|uuid|exists:buildings,id',
-            'room_id' => 'nullable|uuid|exists:rooms,id',
         ]);
 
-        unset($validated['photo']);
-
+        // Handle photo upload
         if ($request->hasFile('photo')) {
-            abort_unless($resource->isUserOwned() && $resource->owner_id === $request->user()->id, 403);
             $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
         }
 
+        // Set total_quantity equal to available_quantity
+        $validated['total_quantity'] = $validated['available_quantity'];
+
+        // Keep status as is (don't change it on edit)
+        unset($validated['status']);
+
         $resource->update($validated);
 
-        return redirect()->route('resources.my-lending')
+        return redirect()->route('resources.show', $resource)
             ->with('success', 'Resource updated successfully!');
+    }
+
+    public function toggleAvailability(Resource $resource)
+    {
+        // Only the owner can toggle availability
+        if ($resource->owner_id !== auth()->id()) {
+            abort(403, 'You do not have permission to toggle this resource.');
+        }
+
+        $resource->status = $resource->status === 'available' ? 'unavailable' : 'available';
+        $resource->save();
+
+        return back()->with('success', 'Resource availability updated successfully!');
     }
 
     public function destroy(Resource $resource)
@@ -159,6 +184,14 @@ class ResourceController extends Controller
             ->paginate(12);
 
         return view('resources.my-borrowing', compact('borrowRequests'));
+    }
+
+    public function createBorrowRequest(Request $request)
+    {
+        $resourceId = $request->query('resource_id');
+        $resource = Resource::findOrFail($resourceId);
+
+        return view('resource-borrow-requests.create', compact('resource'));
     }
 
     public function storeBorrowRequest(StoreResourceBorrowRequest $request)

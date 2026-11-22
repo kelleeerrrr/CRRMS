@@ -310,7 +310,10 @@ class ChatService
             $query->where('type', $filters['type']);
         }
 
-        $conversations = $query->latest()->get();
+        // Sort by latest message timestamp
+        $conversations = $query->get()->sortByDesc(function ($conversation) {
+            return $conversation->messages->first()?->created_at ?? $conversation->updated_at;
+        })->values();
 
         // Load participant pivot data for current user
         foreach ($conversations as $conversation) {

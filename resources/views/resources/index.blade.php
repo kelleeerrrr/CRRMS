@@ -6,7 +6,7 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Browse resources shared by other users</p>
             </div>
             <div class="flex items-center space-x-3">
-                @if(auth()->user()->roles()->first()?->name === 'school_officer')
+                @if(auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('school_officer') || auth()->user()->hasRole('user'))
                     <a href="{{ route('resources.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <x-heroicon-o-plus class="w-5 h-5 mr-2" />
                         Add Resource
@@ -56,6 +56,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($resources as $resource)
                     <x-card>
+                        @if($resource->photos && !empty($resource->photos))
+                            <div class="mb-4 rounded-lg overflow-hidden">
+                                <img src="{{ asset('storage/' . $resource->photos[0]) }}" alt="{{ $resource->name }}" class="w-full h-48 object-cover">
+                            </div>
+                        @elseif($resource->photo)
+                            <div class="mb-4 rounded-lg overflow-hidden">
+                                <img src="{{ asset('storage/' . $resource->photo) }}" alt="{{ $resource->name }}" class="w-full h-48 object-cover">
+                            </div>
+                        @endif
+
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $resource->name }}</h3>
@@ -81,6 +91,10 @@
                                 <x-heroicon-o-check-circle class="w-4 h-4 mr-2" />
                                 Condition: {{ ucfirst($resource->condition) }}
                             </div>
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-cube class="w-4 h-4 mr-2" />
+                                Available: {{ $resource->available_quantity }}
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
@@ -88,13 +102,19 @@
                                 <a href="{{ route('resources.edit', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
                                 </a>
+                                <form action="{{ route('resources.toggle-availability', $resource) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 {{ $resource->status === 'available' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700' }} text-white text-sm rounded-lg transition-colors">
+                                        {{ $resource->status === 'available' ? 'Make Unavailable' : 'Make Available' }}
+                                    </button>
+                                </form>
                             @else
                                 <a href="{{ route('resources.show', $resource) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 text-sm">
                                     View Details
                                 </a>
                                 @if(auth()->user()->roles()->first()?->name === 'user')
-                                    <a href="{{ route('resources.show', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                        Request to Borrow
+                                    <a href="{{ route('resource-borrow-requests.create', ['resource_id' => $resource->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                        Borrow
                                     </a>
                                 @endif
                             @endif
@@ -103,7 +123,7 @@
                                     @csrf
                                     <input type="hidden" name="resource_type" value="resource">
                                     <input type="hidden" name="resource_id" value="{{ $resource->id }}">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
                                         Chat
                                     </button>
                                 </form>

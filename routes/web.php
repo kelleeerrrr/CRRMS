@@ -267,9 +267,12 @@ Route::middleware('auth')->group(function () {
 
     // Announcements
     Route::prefix('announcements')->name('announcements.')->group(function () {
+        // Specific routes must come BEFORE parameterized routes
         Route::get('/', [AnnouncementController::class, 'index'])->name('index');
         Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
         Route::post('/', [AnnouncementController::class, 'store'])->name('store');
+        
+        // Parameterized routes
         Route::get('/{announcement}', [AnnouncementController::class, 'show'])->name('show');
         Route::get('/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('edit');
         Route::put('/{announcement}', [AnnouncementController::class, 'update'])->name('update');
@@ -306,11 +309,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/{resource}', [ResourceController::class, 'show'])->name('show');
         Route::get('/{resource}/edit', [ResourceController::class, 'edit'])->name('edit');
         Route::put('/{resource}', [ResourceController::class, 'update'])->name('update');
+        Route::post('/{resource}/toggle-availability', [ResourceController::class, 'toggleAvailability'])->name('toggle-availability');
         Route::delete('/{resource}', [ResourceController::class, 'destroy'])->name('destroy');
     });
 
     // Resource Borrow Requests
     Route::prefix('resource-borrow-requests')->name('resource-borrow-requests.')->group(function () {
+        Route::get('/create', [ResourceController::class, 'createBorrowRequest'])->name('create');
         Route::post('/', [ResourceController::class, 'storeBorrowRequest'])->name('store');
         Route::get('/{request}/edit', [ResourceController::class, 'editBorrowRequest'])->name('edit');
         Route::get('/{request}', [ResourceController::class, 'showBorrowRequest'])->name('show');
