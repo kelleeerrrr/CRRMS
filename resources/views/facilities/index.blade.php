@@ -83,14 +83,43 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
+                        <div class="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
                             @if(auth()->user()->hasRole('school_officer'))
                                 <a href="{{ route('facilities.edit', $facility) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
                                 </a>
                             @else
+                                <x-inventory-details
+                                    :title="$facility->name"
+                                    :status="$facility->status"
+                                    :photos="$facility->photos ?? []"
+                                    :sections="[
+                                        'Capacity and amenities' => [
+                                            'Facility type' => $facility->type ?? $facility->category,
+                                            'Room' => $facility->room?->name,
+                                            'Address' => $facility->location_address,
+                                            'Capacity' => $facility->capacity.' people',
+                                            'Amenities' => implode(', ', $facility->amenities ?? []),
+                                        ],
+                                        'Availability' => [
+                                            'Operating days' => $facility->operating_days,
+                                            'Opening time' => substr($facility->opening_time ?? '', 0, 5),
+                                            'Closing time' => substr($facility->closing_time ?? '', 0, 5),
+                                        ],
+                                        'Reservation settings' => [
+                                            'Maximum duration (hours)' => $facility->max_reservation_duration,
+                                            'Advance booking (days)' => $facility->advance_booking_requirement,
+                                            'Notes and restrictions' => $facility->rules,
+                                        ],
+                                        'Management information' => [
+                                            'Office or person in charge' => $facility->person_in_charge,
+                                            'Contact information' => $facility->contact_information,
+                                            'Special instructions' => $facility->special_instructions,
+                                        ],
+                                    ]"
+                                />
                                 <a href="{{ route('facilities.reservations.create', ['facility_id' => $facility->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                    Reserve Now
+                                    Reserve
                                 </a>
                             @endif
                             @if(!auth()->user()->hasRole('school_officer'))

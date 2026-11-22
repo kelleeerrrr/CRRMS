@@ -184,7 +184,7 @@
 
     if ($user->can('review-borrower-issues')) {
         $menuItems[] = [
-            'title' => 'Issue Reports',
+            'title' => $role === 'school_officer' ? 'Reports' : 'Issue Reports',
             'icon' => 'heroicon-o-exclamation-triangle',
             'route' => 'borrower.issues.review',
             'active' => $currentRoute === 'borrower.issues.review',
@@ -192,22 +192,22 @@
     }
 @endphp
 
-<aside class="w-64 max-w-full shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 lg:translate-x-0 -translate-x-full fixed lg:relative z-30 h-full shadow-lg lg:shadow-none" x-data="{ open: false, mobileOpen: false }">
+<aside id="app-sidebar" class="w-64 max-w-full shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 fixed inset-y-0 left-0 lg:static lg:translate-x-0 z-30 h-full shadow-lg lg:shadow-none" :class="{ 'translate-x-0': mobileSidebarOpen, '-translate-x-full': !mobileSidebarOpen }">
     <!-- Logo -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-600 to-primary-700">
+    <div class="flex items-center justify-between h-16 shrink-0 px-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-600 to-primary-700">
         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
             <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm">
                 <span class="text-primary-600 font-bold text-sm">CR</span>
             </div>
             <span class="font-semibold text-lg text-white">CRRMS</span>
         </a>
-        <button @click="mobileOpen = false" class="lg:hidden text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+        <button type="button" aria-label="Close navigation" @click="mobileSidebarOpen = false" class="lg:hidden text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
             <x-heroicon-o-x-mark class="w-5 h-5" />
         </button>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+    <nav class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain py-4 px-3 space-y-1">
         @foreach($menuItems as $item)
             @if(isset($item['items']))
                 <!-- Dropdown Menu -->
@@ -246,7 +246,7 @@
     </nav>
 
     <!-- User Section -->
-    <div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
+    <div class="shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shadow-sm">
                 {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -265,4 +265,4 @@
 </aside>
 
 <!-- Mobile Sidebar Overlay -->
-<div x-show="mobileOpen" x-transition.opacity class="fixed inset-0 bg-black/50 z-20 lg:hidden" @click="mobileOpen = false"></div>
+<div x-show="mobileSidebarOpen" style="display: none" x-transition.opacity class="fixed inset-0 bg-black/50 z-20 lg:hidden" @click="mobileSidebarOpen = false"></div>

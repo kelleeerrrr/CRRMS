@@ -24,7 +24,7 @@ class ResourceController extends Controller
         $search = trim($request->string('search')->toString());
         $status = $request->string('status')->toString();
 
-        $resources = Resource::with('owner')
+        $resources = Resource::with(['owner', 'building', 'room'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
@@ -92,6 +92,21 @@ class ResourceController extends Controller
         $resource->load(['owner', 'building', 'room']);
 
         return view('resources.show', compact('resource'));
+    }
+
+    public function borrow(Request $request, Resource $resource)
+    {
+        $user = $request->user();
+        abort_unless($user->roles()->first()?->name === 'user' && $resource->owner_id !== $user->id, 403);
+
+        if (!$resource->canBeBorrowedBy($user)) {
+            return redirect()->route('resources.show', $resource)
+                ->with('error', 'This resource is currently unavailable to borrow.');
+        }
+
+        $resource->load('owner');
+
+        return view('resources.borrow', compact('resource'));
     }
 
     public function edit(Resource $resource)

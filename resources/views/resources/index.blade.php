@@ -1,4 +1,5 @@
 <x-app-layout>
+    @php($isBorrower = auth()->user()->roles()->first()?->name === 'user')
     <x-slot name="header">
         <div class="flex items-center justify-between" data-inventory-header>
             <div>
@@ -83,20 +84,25 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
+                        <div class="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+                            @if($isBorrower)
+                                <x-inventory-details :title="$resource->name" :status="$resource->status">
+                                    @include('resources.details')
+                                </x-inventory-details>
+                            @elseif($resource->owner_id !== auth()->id())
+                                <a href="{{ route('resources.show', $resource) }}"
+                                   class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    View Details
+                                </a>
+                            @endif
                             @if($resource->owner_id === auth()->id())
                                 <a href="{{ route('resources.edit', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
                                 </a>
-                            @else
-                                <a href="{{ route('resources.show', $resource) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 text-sm">
-                                    View Details
+                            @elseif($isBorrower && $resource->canBeBorrowedBy(auth()->user()))
+                                <a href="{{ route('resources.borrow', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                    Borrow
                                 </a>
-                                @if(auth()->user()->roles()->first()?->name === 'user')
-                                    <a href="{{ route('resources.show', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                        Request to Borrow
-                                    </a>
-                                @endif
                             @endif
                             @if($resource->owner_id !== auth()->id())
                                 <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
