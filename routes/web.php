@@ -67,7 +67,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [FacilityController::class, 'store'])->name('store');
         Route::get('/{facility}/edit', [FacilityController::class, 'edit'])->name('edit');
         Route::put('/{facility}', [FacilityController::class, 'update'])->name('update');
-        
+        Route::post('/{facility}/toggle-availability', [FacilityController::class, 'toggleAvailability'])->name('toggle-availability');
+
         // Facility Reservations
         Route::prefix('reservations')->name('reservations.')->group(function () {
             Route::get('/', [FacilityReservationController::class, 'index'])->name('index');
@@ -92,6 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [EquipmentController::class, 'store'])->name('store');
         Route::get('/{equipment}/edit', [EquipmentController::class, 'edit'])->name('edit');
         Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
+        Route::post('/{equipment}/toggle-availability', [EquipmentController::class, 'toggleAvailability'])->name('toggle-availability');
         
         // Equipment Borrow Requests
         Route::prefix('borrow-requests')->name('borrow-requests.')->group(function () {

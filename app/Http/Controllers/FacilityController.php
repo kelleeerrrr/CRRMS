@@ -49,9 +49,21 @@ class FacilityController extends Controller
             ->with('success', 'Facility updated successfully.');
     }
 
+    public function toggleAvailability(Facility $facility)
+    {
+        abort_unless(auth()->user()->hasRole('school_officer'), 403);
+
+        $facility->status = $facility->status === 'available' ? 'unavailable' : 'available';
+        $facility->save();
+
+        return back()->with('success', 'Facility availability updated successfully!');
+    }
+
     public function store(Request $request)
     {
-        Facility::create($this->validatedData($request));
+        $validated = $this->validatedData($request);
+        $validated['status'] = 'available'; // Always set new facilities to available
+        Facility::create($validated);
 
         return redirect()->route('facilities.index')
             ->with('success', 'Facility created successfully.');
@@ -64,27 +76,27 @@ class FacilityController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:Classroom,Laboratory,Auditorium,Conference Room,Function Room,Sports Facility,Other',
             'location_address' => 'nullable|string',
-            
+
             // Capacity & Amenities
             'capacity' => 'required|integer|min:1',
             'amenities' => 'nullable|array',
             'amenities.*' => 'required|string|max:255',
-            
+
             // Availability
-            'status' => 'required|in:available,unavailable,maintenance',
+            'status' => 'nullable|in:available,unavailable,maintenance',
             'operating_days' => 'nullable|string',
             'opening_time' => 'nullable|date_format:H:i',
             'closing_time' => 'nullable|date_format:H:i',
-            
+
             // Reservation Settings
             'max_reservation_duration' => 'nullable|integer|min:1',
             'advance_booking_requirement' => 'nullable|integer|min:0',
             'rules' => 'nullable|string',
-            
+
             // Facility Image
             'photos' => 'nullable|array',
             'photos.*' => 'required|image|max:10240',
-            
+
             // Management Information
             'person_in_charge' => 'nullable|string|max:255',
             'contact_information' => 'nullable|string|max:255',

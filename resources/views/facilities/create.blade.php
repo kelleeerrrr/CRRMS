@@ -87,38 +87,12 @@
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">4. Availability</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <x-select
-                        name="status"
-                        :value="$facility->status ?? null"
-                        label="Status"
-                        required
-                        :options="[
-                            'available' => 'Available',
-                            'unavailable' => 'Unavailable',
-                            'maintenance' => 'Under Maintenance'
-                        ]"
-                    />
-
                     <x-input
                         type="text"
                         name="operating_days"
                         :value="$facility->operating_days ?? null"
                         label="Operating Days"
                         placeholder="e.g., Monday - Friday"
-                    />
-
-                    <x-input
-                        type="time"
-                        name="opening_time"
-                        :value="substr($facility->opening_time ?? '', 0, 5)"
-                        label="Opening Time"
-                    />
-
-                    <x-input
-                        type="time"
-                        name="closing_time"
-                        :value="substr($facility->closing_time ?? '', 0, 5)"
-                        label="Closing Time"
                     />
                 </div>
             </div>
@@ -131,7 +105,7 @@
                         type="number"
                         name="max_reservation_duration"
                         :value="$facility->max_reservation_duration ?? null"
-                        label="Maximum Reservation Duration (hours)"
+                        label="Maximum Reservation Duration (days)"
                         min="1"
                     />
 

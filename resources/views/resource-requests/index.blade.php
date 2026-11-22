@@ -51,67 +51,67 @@
                     <table class="w-full">
                         <thead>
                             <tr class="border-b border-gray-200 dark:border-gray-700">
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Requested</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Borrower</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Resource</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Borrow Date</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Return Date</th>
-                                <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                                <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
-                                <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Details</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Requested</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Borrower</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Resource</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Quantity</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Borrow Date</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Return Date</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Status</th>
+                                <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                                <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($requests as $request)
                                 <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                         {{ $request->created_at->format('M d, Y H:i') }}
                                     </td>
-                                    <td class="py-3 px-4">
+                                    <td class="py-2 px-3">
                                         <div class="flex items-center">
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-semibold mr-2">
                                                 {{ strtoupper(substr($request->borrower_name ?? $request->user->name, 0, 1)) }}
                                             </div>
                                             <div>
-                                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $request->borrower_name ?? $request->user->name }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $request->email ?? $request->user->email }}</p>
+                                                <p class="text-xs font-medium text-gray-900 dark:text-white">{{ $request->borrower_name ?? $request->user->name }}</p>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $request->email ?? $request->user->email }}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                         {{ $request->resource->name }}
                                     </td>
-                                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                         {{ $request->quantity }}
                                     </td>
-                                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                         {{ $request->start_date ? $request->start_date->format('M d, Y') : 'N/A' }}
                                     </td>
-                                    <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                         {{ $request->end_date ? $request->end_date->format('M d, Y') : 'N/A' }}
                                     </td>
-                                    <td class="py-3 px-4">
+                                    <td class="py-2 px-3">
                                         <x-status-badge :status="$request->status" />
                                     </td>
-                                    <td class="py-3 px-4">
-                                        <div class="flex items-center justify-center gap-2">
+                                    <td class="py-2 px-3">
+                                        <div class="flex items-center justify-center gap-1">
                                             @if($request->status === 'pending')
                                                 <form method="POST" action="{{ route('resource-requests.approve', $request) }}" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
+                                                    <button type="submit" class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
                                                         Approve
                                                     </button>
                                                 </form>
-                                                <button onclick="showDeclineModal('{{ $request->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
+                                                <button onclick="showDeclineModal('{{ $request->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
                                                     Reject
                                                 </button>
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="py-3 px-4 text-center">
+                                    <td class="py-2 px-3 text-center">
                                         <a href="{{ route('resource-borrow-requests.show', $request) }}"
-                                            class="inline-flex items-center rounded-lg border border-blue-600 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
+                                            class="inline-flex items-center rounded-lg border border-blue-600 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
                                             View
                                         </a>
                                     </td>

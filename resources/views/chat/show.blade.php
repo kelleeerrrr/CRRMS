@@ -12,7 +12,9 @@
                     @php
                         $otherParticipant = $conversation->participants->where('id', '!=', auth()->id())->first();
                     @endphp
-                    @if($otherParticipant)
+                    @if($otherParticipant && $otherParticipant->profile_photo_path)
+                        <img src="{{ asset('storage/' . $otherParticipant->profile_photo_path) }}" alt="{{ $otherParticipant->name }}" class="w-10 h-10 rounded-full object-cover mr-3">
+                    @elseif($otherParticipant)
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold mr-3">
                             {{ strtoupper(substr($otherParticipant->name, 0, 1)) }}
                         </div>
@@ -65,9 +67,13 @@
                     <div class="flex {{ $message->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
                         <div class="max-w-xs lg:max-w-md">
                             <div class="flex items-end {{ $message->sender_id === auth()->id() ? 'flex-row-reverse' : 'flex-row' }}">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm {{ $message->sender_id === auth()->id() ? 'ml-2' : 'mr-2' }}">
-                                    {{ strtoupper(substr($message->sender->name, 0, 1)) }}
-                                </div>
+                                @if($message->sender->profile_photo_path)
+                                    <img src="{{ asset('storage/' . $message->sender->profile_photo_path) }}" alt="{{ $message->sender->name }}" class="w-8 h-8 rounded-full object-cover {{ $message->sender_id === auth()->id() ? 'ml-2' : 'mr-2' }}">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm {{ $message->sender_id === auth()->id() ? 'ml-2' : 'mr-2' }}">
+                                        {{ strtoupper(substr($message->sender->name, 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div class="{{ $message->sender_id === auth()->id() ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white' }} rounded-lg px-4 py-2">
                                     @if($message->type === 'file' && $message->file_path)
                                         <div class="flex items-center space-x-2">

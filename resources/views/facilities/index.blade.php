@@ -60,6 +60,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($facilities as $facility)
                     <x-card>
+                        @if($facility->photos && !empty($facility->photos))
+                            <div class="mb-4 rounded-lg overflow-hidden">
+                                <img src="{{ asset('storage/' . $facility->photos[0]) }}" alt="{{ $facility->name }}" class="w-full h-48 object-cover">
+                            </div>
+                        @endif
+
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $facility->name }}</h3>
@@ -78,9 +84,19 @@
 
                         <div class="space-y-2 mb-4">
                             <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-cube class="w-4 h-4 mr-2" />
+                                Type: {{ ucfirst($facility->type) }}
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
                                 <x-heroicon-o-users class="w-4 h-4 mr-2" />
                                 Capacity: {{ $facility->capacity }} people
                             </div>
+                            @if($facility->amenities && !empty($facility->amenities))
+                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                    <x-heroicon-o-check-circle class="w-4 h-4 mr-2" />
+                                    Amenities: {{ implode(', ', array_slice($facility->amenities, 0, 3)) }}{{ count($facility->amenities) > 3 ? '...' : '' }}
+                                </div>
+                            @endif
                         </div>
 
                         <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
@@ -88,6 +104,12 @@
                                 <a href="{{ route('facilities.edit', $facility) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
                                 </a>
+                                <form action="{{ route('facilities.toggle-availability', $facility) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 {{ $facility->status === 'available' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700' }} text-white text-sm rounded-lg transition-colors">
+                                        {{ $facility->status === 'available' ? 'Make Unavailable' : 'Make Available' }}
+                                    </button>
+                                </form>
                             @else
                                 <a href="{{ route('facilities.reservations.create', ['facility_id' => $facility->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Reserve Now
@@ -98,7 +120,7 @@
                                     @csrf
                                     <input type="hidden" name="resource_type" value="facility">
                                     <input type="hidden" name="resource_id" value="{{ $facility->id }}">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
                                         Chat
                                     </button>
                                 </form>

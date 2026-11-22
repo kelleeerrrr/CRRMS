@@ -30,11 +30,8 @@ class StoreFacilityReservationRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
             'purpose' => ['nullable', 'string', 'max:255'],
-            'attendees_count' => ['nullable', 'integer', 'min:1'],
+            'agreement' => ['required', 'accepted'],
         ];
     }
 
@@ -46,7 +43,7 @@ class StoreFacilityReservationRequest extends FormRequest
             'contact_number.required' => 'Please provide a contact number.',
             'start_date.after' => 'The start date must be after today.',
             'end_date.after' => 'The end date must be after the start date.',
-            'end_time.after' => 'The end time must be after the start time.',
+            'agreement.required' => 'You must agree to the terms and conditions.',
         ];
     }
 }

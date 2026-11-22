@@ -75,7 +75,7 @@
                                 </div>
                             </div>
                         @endforeach
-                        <a href="{{ route('facilities.reservations.create') }}" class="text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400">Reserve a facility →</a>
+                        <a href="{{ route('facilities.index') }}" class="text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400">Reserve a facility →</a>
                     @else
                         <p class="text-sm text-gray-500 dark:text-gray-400">No facilities available</p>
                     @endif
@@ -112,7 +112,7 @@
                                 </div>
                             </div>
                         @endforeach
-                        <a href="{{ route('equipment.borrow-requests.create') }}" class="text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400">Borrow equipment →</a>
+                        <a href="{{ route('equipment.index') }}" class="text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400">Borrow equipment →</a>
                     @else
                         <p class="text-sm text-gray-500 dark:text-gray-400">No equipment available</p>
                     @endif

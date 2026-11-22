@@ -71,9 +71,21 @@ class EquipmentController extends Controller
             ->with('success', 'Equipment updated successfully.');
     }
 
+    public function toggleAvailability(Equipment $equipment)
+    {
+        abort_unless(auth()->user()->hasRole('school_officer'), 403);
+
+        $equipment->availability_status = $equipment->availability_status === 'Available' ? 'Unavailable' : 'Available';
+        $equipment->save();
+
+        return back()->with('success', 'Equipment availability updated successfully!');
+    }
+
     public function store(Request $request)
     {
-        Equipment::create($this->validatedData($request));
+        $validated = $this->validatedData($request);
+        $validated['availability_status'] = 'Available'; // Always set new equipment to available
+        Equipment::create($validated);
 
         return redirect()->route('equipment.index')
             ->with('success', 'Equipment created successfully.');
@@ -83,22 +95,14 @@ class EquipmentController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'equipment_code' => ['required', 'string', 'max:100', $equipment
-                ? Rule::unique('equipment', 'equipment_code')->ignore($equipment)
-                : Rule::unique('equipment', 'equipment_code')],
             'equipment_category' => 'required|in:Computer,Projector,Audio Equipment,Laboratory Equipment,Sports Equipment,Office Equipment,Other',
             'description' => 'nullable|string',
-            'location_building' => 'required|string|max:255',
             'room_storage' => 'nullable|string|max:255',
             'total_quantity' => 'required|integer|min:1',
             'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
-            'availability_status' => 'required|in:Available,Unavailable,Under Maintenance,Retired',
             'equipment_photo' => 'nullable|image|max:10240',
-            'available_for_borrowing' => 'required|boolean',
-            'max_borrowing_duration' => 'nullable|integer|min:1',
-            'advance_booking_requirement' => 'nullable|integer|min:0',
-            'borrowing_restrictions' => 'nullable|string',
             'responsible_office' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:20',
             'additional_notes' => 'nullable|string',
             // Legacy fields (nullable for backward compatibility)
             'category_id' => 'nullable|uuid|exists:equipment_categories,id',

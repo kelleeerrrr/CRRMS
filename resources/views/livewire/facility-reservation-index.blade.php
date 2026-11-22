@@ -45,7 +45,7 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">
                                 <button wire:click="sortBy('created_at')" class="flex items-center hover:text-gray-900 dark:hover:text-white">
                                     Requested
                                     @if($sortField === 'created_at')
@@ -53,59 +53,59 @@
                                     @endif
                                 </button>
                             </th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Borrower</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Facility</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">End Date</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                            <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
-                            <th scope="col" class="text-center py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Details</th>
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Borrower</th>
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Facility</th>
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Start Date</th>
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">End Date</th>
+                            <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Status</th>
+                            <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                            <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Details</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($reservations as $reservation)
                             <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                     {{ $reservation->created_at->format('M d, Y H:i') }}
                                 </td>
-                                <td class="py-3 px-4">
+                                <td class="py-2 px-3">
                                     <div class="flex items-center">
-                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                        <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-semibold mr-2">
                                             {{ strtoupper(substr($reservation->reservee_name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $reservation->reservee_name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $reservation->contact_number }}</p>
+                                            <p class="text-xs font-medium text-gray-900 dark:text-white">{{ $reservation->reservee_name }}</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $reservation->contact_number }}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                     {{ $reservation->facility?->name ?? 'No Facility' }}
                                 </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                     {{ $reservation->start_date->format('M d, Y') }}
                                 </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
+                                <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
                                     {{ $reservation->end_date->format('M d, Y') }}
                                 </td>
-                                <td class="py-3 px-4">
+                                <td class="py-2 px-3">
                                     <x-status-badge :status="$reservation->status" />
                                 </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center justify-center gap-2">
+                                <td class="py-2 px-3">
+                                    <div class="flex items-center justify-center gap-1">
                                         @if(auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
-                                            <button wire:click="approve('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
+                                            <button wire:click="approve('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
                                                 Approve
                                             </button>
-                                            <button wire:click="reject('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
+                                            <button wire:click="reject('{{ $reservation->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
                                                 Reject
                                             </button>
                                         @endif
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 text-center">
+                                <td class="py-2 px-3 text-center">
                                     <a href="{{ route('facilities.reservations.show', $reservation) }}"
-                                        class="inline-flex items-center rounded-lg border border-blue-600 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
+                                        class="inline-flex items-center rounded-lg border border-blue-600 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
                                         View
                                     </a>
                                 </td>

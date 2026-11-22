@@ -3,8 +3,10 @@
 @if($equipment)
 <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow">
     <div class="flex items-start space-x-4">
-        @if($equipment->photo)
-            <img src="{{ asset($equipment->photo) }}" alt="{{ $equipment->name }}" class="w-16 h-16 rounded-lg object-cover">
+        @if($equipment->photos && !empty($equipment->photos))
+            <img src="{{ asset('storage/' . $equipment->photos[0]) }}" alt="{{ $equipment->name }}" class="w-16 h-16 rounded-lg object-cover">
+        @elseif($equipment->equipment_photo)
+            <img src="{{ asset('storage/' . $equipment->equipment_photo) }}" alt="{{ $equipment->name }}" class="w-16 h-16 rounded-lg object-cover">
         @else
             <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold text-xl">
                 {{ strtoupper(substr($equipment->name, 0, 2)) }}
@@ -14,6 +16,9 @@
         <div class="flex-1">
             <h3 class="font-semibold text-gray-900 dark:text-white text-lg">{{ $equipment->name }}</h3>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-1 space-y-1">
+                @if($equipment->category)
+                    <p><span class="font-medium">Category:</span> {{ $equipment->category->name ?? $equipment->equipment_category ?? 'N/A' }}</p>
+                @endif
                 @if($equipment->code)
                     <p><span class="font-medium">Code:</span> {{ $equipment->code }}</p>
                 @endif

@@ -3,8 +3,10 @@
 @if($resource)
 <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow">
     <div class="flex items-start space-x-4">
-        @if($resource->photo)
-            <img src="{{ asset($resource->photo) }}" alt="{{ $resource->name }}" class="w-16 h-16 rounded-lg object-cover">
+        @if($resource->photos && !empty($resource->photos))
+            <img src="{{ asset('storage/' . $resource->photos[0]) }}" alt="{{ $resource->name }}" class="w-16 h-16 rounded-lg object-cover">
+        @elseif($resource->photo)
+            <img src="{{ asset('storage/' . $resource->photo) }}" alt="{{ $resource->name }}" class="w-16 h-16 rounded-lg object-cover">
         @else
             <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold text-xl">
                 {{ strtoupper(substr($resource->name, 0, 2)) }}

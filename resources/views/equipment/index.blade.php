@@ -73,6 +73,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($equipment as $item)
                     <x-card>
+                        @if($item->photos && !empty($item->photos))
+                            <div class="mb-4 rounded-lg overflow-hidden">
+                                <img src="{{ asset('storage/' . $item->photos[0]) }}" alt="{{ $item->name }}" class="w-full h-48 object-cover">
+                            </div>
+                        @elseif($item->equipment_photo)
+                            <div class="mb-4 rounded-lg overflow-hidden">
+                                <img src="{{ asset('storage/' . $item->equipment_photo) }}" alt="{{ $item->name }}" class="w-full h-48 object-cover">
+                            </div>
+                        @endif
+
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>
@@ -91,23 +101,28 @@
 
                         <div class="space-y-2 mb-4">
                             <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                <span class="mr-2">📦</span>
+                                <x-heroicon-o-cube class="w-4 h-4 mr-2" />
                                 Total: {{ $item->total_quantity ?? 1 }}
                             </div>
                             <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                <span class="mr-2">✅</span>
+                                <x-heroicon-o-check-circle class="w-4 h-4 mr-2" />
                                 Available: {{ $item->available_quantity }}
                             </div>
                             <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                <span class="mr-2">🏷️</span>
+                                <x-heroicon-o-cube class="w-4 h-4 mr-2" />
                                 Condition: {{ $item->condition }}
                             </div>
                             @if($item->location_building)
                             <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                <span class="mr-2">📍</span>
+                                <x-heroicon-o-building-office class="w-4 h-4 mr-2" />
                                 {{ $item->location_building }}
                                 @if($item->room_storage) - {{ $item->room_storage }}
                                 @endif
+                            </div>
+                            @elseif($item->room_storage)
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-building-office class="w-4 h-4 mr-2" />
+                                {{ $item->room_storage }}
                             </div>
                             @endif
                         </div>
@@ -117,6 +132,12 @@
                                 <a href="{{ route('equipment.edit', $item) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
                                 </a>
+                                <form action="{{ route('equipment.toggle-availability', $item) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 {{ ($item->availability_status ?? $item->status) === 'Available' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700' }} text-white text-sm rounded-lg transition-colors">
+                                        {{ ($item->availability_status ?? $item->status) === 'Available' ? 'Make Unavailable' : 'Make Available' }}
+                                    </button>
+                                </form>
                             @else
                                 @if($item->isAvailableForBorrowing())
                                     <a href="{{ route('equipment.borrow-requests.create', ['equipment_id' => $item->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
@@ -133,7 +154,7 @@
                                     @csrf
                                     <input type="hidden" name="resource_type" value="equipment">
                                     <input type="hidden" name="resource_id" value="{{ $item->id }}">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
                                         Chat
                                     </button>
                                 </form>
