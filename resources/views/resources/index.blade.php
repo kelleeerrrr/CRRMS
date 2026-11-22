@@ -1,98 +1,135 @@
 <x-app-layout>
+    @php($isBorrower = auth()->user()->roles()->first()?->name === 'user')
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between" data-inventory-header>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Other Resources</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Browse resources shared by other users</p>
             </div>
             <div class="flex items-center space-x-3">
-                @if(auth()->user()->roles()->first()?->name === 'school_officer' || auth()->user()->roles()->first()?->name === 'user')
+                @if(auth()->user()->roles()->first()?->name === 'school_officer')
                     <a href="{{ route('resources.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <x-heroicon-o-plus class="w-5 h-5 mr-2" />
                         Add Resource
-                    </a>
-                @endif
-                @if(auth()->user()->roles()->first()?->name === 'user')
-                    <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-plus class="w-5 h-5 mr-2" />
-                        Borrow Resource
                     </a>
                 @endif
             </div>
         </div>
     </x-slot>
 
-    @if($resources->count() > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($resources as $resource)
-                <x-card>
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $resource->name }}</h3>
-                            @if($resource->category)
-                                <span class="inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full mt-1">
-                                    {{ $resource->category }}
-                                </span>
-                            @endif
-                        </div>
-                        <x-status-badge :status="$resource->status" />
-                    </div>
+    <!-- Filters -->
+    <x-card class="mb-6">
+        <form data-inventory-search method="GET" action="{{ route('resources.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-input
+                    type="search"
+                    name="search"
+                    :value="$search"
+                    placeholder="Search resources..."
+                    label="Search"
+                />
 
-                    @if($resource->description)
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ Str::limit($resource->description, 100) }}</p>
-                    @endif
+                <x-select
+                    name="status"
+                    placeholder=""
+                    :value="$status"
+                    label="Status"
+                    :options="[
+                        '' => 'All Status',
+                        'available' => 'Available',
+                        'borrowed' => 'Borrowed',
+                        'maintenance' => 'Maintenance',
+                        'unavailable' => 'Unavailable'
+                    ]"
+                />
+            </div>
 
-                    <div class="space-y-2 mb-4">
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <x-heroicon-o-user class="w-4 h-4 mr-2" />
-                            Owner: {{ $resource->owner ? $resource->owner->name : 'School' }}
-                        </div>
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <x-heroicon-o-check-circle class="w-4 h-4 mr-2" />
-                            Condition: {{ ucfirst($resource->condition) }}
-                        </div>
-                    </div>
+            <div class="mt-4 flex min-h-9 items-center gap-3">
+                <span data-inventory-search-status role="status" class="mr-auto text-sm font-medium text-blue-700 dark:text-blue-300"></span>
+                <noscript><x-button type="submit">Search</x-button></noscript>
+                <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('resources.index') }}">Reset</a>
+            </div>
+        </form>
+    </x-card>
 
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
-                        @if($resource->owner_id === auth()->id())
-                            <a href="{{ route('resources.edit', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                Edit
-                            </a>
-                        @else
-                            <a href="{{ route('resources.show', $resource) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 text-sm">
-                                View Details
-                            </a>
-                            @if(auth()->user()->roles()->first()?->name === 'user')
-                                <a href="{{ route('resources.show', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                    Request to Borrow
+    <div data-inventory-results aria-live="polite" aria-busy="false">
+        @if($resources->count() > 0)
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($resources as $resource)
+                    <x-card>
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $resource->name }}</h3>
+                                @if($resource->category)
+                                    <span class="inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full mt-1">
+                                        {{ $resource->category }}
+                                    </span>
+                                @endif
+                            </div>
+                            <x-status-badge :status="$resource->status" />
+                        </div>
+
+                        @if($resource->description)
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ Str::limit($resource->description, 100) }}</p>
+                        @endif
+
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-user class="w-4 h-4 mr-2" />
+                                Owner: {{ $resource->owner ? $resource->owner->name : 'School' }}
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <x-heroicon-o-check-circle class="w-4 h-4 mr-2" />
+                                Condition: {{ ucfirst($resource->condition) }}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+                            @if($isBorrower)
+                                <x-inventory-details :title="$resource->name" :status="$resource->status">
+                                    @include('resources.details')
+                                </x-inventory-details>
+                            @elseif($resource->owner_id !== auth()->id())
+                                <a href="{{ route('resources.show', $resource) }}"
+                                   class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    View Details
                                 </a>
                             @endif
-                        @endif
-                        @if($resource->owner_id !== auth()->id())
-                            <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
-                                @csrf
-                                <input type="hidden" name="resource_type" value="resource">
-                                <input type="hidden" name="resource_id" value="{{ $resource->id }}">
-                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
-                                    Chat
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                </x-card>
-            @endforeach
-        </div>
-
-        <div class="mt-6">
-            {{ $resources->links() }}
-        </div>
-    @else
-        <x-card>
-            <div class="text-center py-12">
-                <x-heroicon-o-cube class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No resources available</h3>
-                <p class="text-gray-600 dark:text-gray-400">Check back later for available resources</p>
+                            @if($resource->owner_id === auth()->id())
+                                <a href="{{ route('resources.edit', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                    Edit
+                                </a>
+                            @elseif($isBorrower && $resource->canBeBorrowedBy(auth()->user()))
+                                <a href="{{ route('resources.borrow', $resource) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                    Borrow
+                                </a>
+                            @endif
+                            @if($resource->owner_id !== auth()->id())
+                                <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
+                                    @csrf
+                                    <input type="hidden" name="resource_type" value="resource">
+                                    <input type="hidden" name="resource_id" value="{{ $resource->id }}">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                        Chat
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </x-card>
+                @endforeach
             </div>
-        </x-card>
-    @endif
+
+            <div class="mt-6">
+                {{ $resources->links() }}
+            </div>
+        @else
+            <x-card>
+                <div class="text-center py-12">
+                    <x-heroicon-o-cube class="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No resources available</h3>
+                    <p class="text-gray-600 dark:text-gray-400">{{ $search !== '' || $status !== '' ? 'Try a different search or status.' : 'Check back later for available resources.' }}</p>
+                </div>
+            </x-card>
+        @endif
+    </div>
 </x-app-layout>

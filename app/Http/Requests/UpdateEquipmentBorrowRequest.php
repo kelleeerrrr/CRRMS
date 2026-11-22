@@ -12,7 +12,7 @@ class UpdateEquipmentBorrowRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('view-equipment');
+        return $this->user()->can('update', $this->route('borrowRequest'));
     }
 
     /**
@@ -23,10 +23,10 @@ class UpdateEquipmentBorrowRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organization_id' => ['sometimes', 'exists:organizations,id'],
+            'organization_id' => ['nullable', 'exists:organizations,id'],
             'purpose' => ['sometimes', 'string', 'max:255'],
-            'start_date' => ['sometimes', 'date', 'after:today'],
-            'end_date' => ['sometimes', 'date', 'after:start_date'],
+            'borrow_date' => ['sometimes', 'date', 'after:today'],
+            'return_date' => ['sometimes', 'date', 'after:borrow_date'],
         ];
     }
 }

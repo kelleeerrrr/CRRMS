@@ -22,11 +22,15 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\MyLendingController;
+use App\Http\Controllers\BorrowerRecordController;
+use App\Http\Controllers\BorrowerIssueReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+Route::get('/borrower', fn () => redirect()->route('dashboard'));
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -37,7 +41,22 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // My Lending
+    Route::prefix('borrower')->name('borrower.')->group(function () {
+        Route::get('/requests', [BorrowerRecordController::class, 'index'])->name('requests');
+        Route::get('/approved', [BorrowerRecordController::class, 'index'])->name('approved');
+        Route::get('/{section}/{category}', function (\Illuminate\Http\Request $request, string $section, string $category) {
+            return redirect()->route("borrower.$section", [...$request->query(), 'category' => $category]);
+        })->whereIn('section', ['requests', 'approved'])->whereIn('category', ['facilities', 'equipment', 'resources']);
+        Route::get('/loans', [BorrowerRecordController::class, 'index'])->name('loans');
+        Route::get('/history', [BorrowerRecordController::class, 'index'])->name('history');
+        Route::get('/issues', [BorrowerIssueReportController::class, 'index'])->name('issues.index');
+        Route::get('/issues/review', [BorrowerIssueReportController::class, 'index'])->name('issues.review');
+        Route::post('/issues', [BorrowerIssueReportController::class, 'store'])->name('issues.store');
+        Route::get('/issues/{issue}/photos/{photo}', [BorrowerIssueReportController::class, 'photo'])
+            ->whereUuid('issue')->whereNumber('photo')->name('issues.photo');
+    });
+
+    // Legacy borrower request pages
     Route::prefix('my-lending')->name('my-lending.')->group(function () {
         Route::get('/requests', [MyLendingController::class, 'requests'])->name('requests');
         Route::get('/borrowing', [MyLendingController::class, 'borrowing'])->name('borrowing');
@@ -48,6 +67,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [FacilityController::class, 'index'])->name('index');
         Route::get('/create', [FacilityController::class, 'create'])->name('create');
         Route::post('/', [FacilityController::class, 'store'])->name('store');
+        Route::get('/{facility}/edit', [FacilityController::class, 'edit'])->name('edit');
+        Route::put('/{facility}', [FacilityController::class, 'update'])->name('update');
         
         // Facility Reservations
         Route::prefix('reservations')->name('reservations.')->group(function () {
@@ -71,6 +92,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])->name('index');
         Route::get('/create', [EquipmentController::class, 'create'])->name('create');
         Route::post('/', [EquipmentController::class, 'store'])->name('store');
+        Route::get('/{equipment}/edit', [EquipmentController::class, 'edit'])->name('edit');
+        Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
         
         // Equipment Borrow Requests
         Route::prefix('borrow-requests')->name('borrow-requests.')->group(function () {
@@ -110,6 +133,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ResourceRequestController::class, 'index'])->name('index');
         Route::post('/{request}/approve', [ResourceRequestController::class, 'approve'])->name('approve');
         Route::post('/{request}/decline', [ResourceRequestController::class, 'decline'])->name('decline');
+        Route::post('/{request}/check-out', [ResourceRequestController::class, 'checkOut'])->name('check-out');
+        Route::post('/{request}/return', [ResourceRequestController::class, 'returnResource'])->name('return');
     });
 
     // Building Management
@@ -260,11 +285,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [CalendarController::class, 'index'])->name('index');
         Route::get('/create', [CalendarController::class, 'create'])->name('create');
         Route::post('/', [CalendarController::class, 'store'])->name('store');
+        Route::get('/data', [CalendarController::class, 'calendarData'])->name('data');
         Route::get('/{event}', [CalendarController::class, 'show'])->name('show');
         Route::get('/{event}/edit', [CalendarController::class, 'edit'])->name('edit');
         Route::put('/{event}', [CalendarController::class, 'update'])->name('update');
         Route::delete('/{event}', [CalendarController::class, 'destroy'])->name('destroy');
-        Route::get('/data', [CalendarController::class, 'calendarData'])->name('data');
     });
 
     // Global Search
@@ -281,6 +306,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/my-lending', [ResourceController::class, 'myLending'])->name('my-lending');
         Route::get('/my-borrowing', [ResourceController::class, 'myBorrowing'])->name('my-borrowing');
         Route::get('/{resource}', [ResourceController::class, 'show'])->name('show');
+        Route::get('/{resource}/borrow', [ResourceController::class, 'borrow'])->name('borrow');
         Route::get('/{resource}/edit', [ResourceController::class, 'edit'])->name('edit');
         Route::put('/{resource}', [ResourceController::class, 'update'])->name('update');
         Route::delete('/{resource}', [ResourceController::class, 'destroy'])->name('destroy');

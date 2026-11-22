@@ -1,12 +1,9 @@
-<x-slot name="title">Edit Reservation</x-slot>
-
-<x-slot name="breadcrumbs">
-    {{ [
+<x-app-layout :breadcrumbs="[
         ['title' => 'Facilities', 'url' => '#'],
         ['title' => 'Reservations', 'url' => route('facilities.reservations.index')],
         ['title' => 'Edit', 'url' => null],
-    ] }}
-</x-slot>
+    ]">
+<x-slot name="title">Edit Reservation</x-slot>
 
 <x-slot name="header">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Reservation</h1>
@@ -22,7 +19,7 @@
             <x-select
                 name="facility_id"
                 label="Facility"
-                :options="['' => 'Select a facility'] + \App\Models\Facility::where('is_active', true)->pluck('name', 'id')->toArray()"
+                :options="['' => 'Select a facility'] + \App\Models\Facility::where('status', 'available')->orWhere('id', $reservation->facility_id)->pluck('name', 'id')->toArray()"
                 required
                 :value="old('facility_id', $reservation->facility_id)"
                 :error="$errors->first('facility_id')"
@@ -82,23 +79,23 @@
             />
             
             <x-input
-                type="number"
-                name="attendees_count"
-                label="Expected Attendees"
-                placeholder="Number of attendees"
-                :value="old('attendees_count', $reservation->attendees_count)"
-                :error="$errors->first('attendees_count')"
+                type="text"
+                name="reservee_name"
+                label="Reservee Name"
+                placeholder="Name of the reservee"
+                :value="old('reservee_name', $reservation->reservee_name)"
+                :error="$errors->first('reservee_name')"
             />
         </div>
         
         <div class="mt-6">
             <x-input
                 type="text"
-                name="purpose"
-                label="Purpose"
-                placeholder="e.g., Training, Meeting, Event"
-                :value="old('purpose', $reservation->purpose)"
-                :error="$errors->first('purpose')"
+                name="contact_number"
+                label="Contact Number"
+                placeholder="Contact number"
+                :value="old('contact_number', $reservation->contact_number)"
+                :error="$errors->first('contact_number')"
             />
         </div>
         
@@ -123,3 +120,4 @@
         </div>
     </form>
 </x-card>
+</x-app-layout>

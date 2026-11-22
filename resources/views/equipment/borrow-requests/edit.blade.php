@@ -1,12 +1,9 @@
-<x-slot name="title">Edit Borrow Request</x-slot>
-
-<x-slot name="breadcrumbs">
-    {{ [
+<x-app-layout :breadcrumbs="[
         ['title' => 'Equipment', 'url' => '#'],
         ['title' => 'Borrow Requests', 'url' => route('equipment.borrow-requests.index')],
         ['title' => 'Edit', 'url' => null],
-    ] }}
-</x-slot>
+    ]">
+<x-slot name="title">Edit Borrow Request</x-slot>
 
 <x-slot name="header">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Borrow Request</h1>
@@ -38,47 +35,30 @@
             
             <x-input
                 type="date"
-                name="start_date"
-                label="Start Date"
+                name="borrow_date"
+                label="Borrow Date"
                 required
-                :value="old('start_date', $borrowRequest->start_date->format('Y-m-d'))"
-                :error="$errors->first('start_date')"
+                :value="old('borrow_date', $borrowRequest->borrow_date->format('Y-m-d'))"
+                :error="$errors->first('borrow_date')"
             />
             
             <x-input
                 type="date"
-                name="end_date"
-                label="End Date"
+                name="return_date"
+                label="Return Date"
                 required
-                :value="old('end_date', $borrowRequest->end_date->format('Y-m-d'))"
-                :error="$errors->first('end_date')"
+                :value="old('return_date', $borrowRequest->return_date->format('Y-m-d'))"
+                :error="$errors->first('return_date')"
             />
         </div>
         
         <div class="mt-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Equipment Items</h3>
-            <div class="space-y-4">
-                @foreach($borrowRequest->items as $index => $item)
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Equipment</label>
-                            <select name="items[{{ $index }}][equipment_id]" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                                <option value="">Select equipment</option>
-                                @foreach($equipment as $eq)
-                                    <option value="{{ $eq->id }}" {{ $item->equipment_id === $eq->id ? 'selected' : '' }}>{{ $eq->name }} (Available: {{ $eq->available_quantity }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
-                            <input type="number" name="items[{{ $index }}][quantity]" min="1" value="{{ $item->quantity }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div class="flex items-end">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Returned: {{ $item->returned_quantity }}</span>
-                        </div>
-                    </div>
+            <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                @foreach($borrowRequest->items as $item)
+                    <li>{{ $item->equipment?->name ?? 'Equipment' }} · Quantity {{ $item->quantity }}</li>
                 @endforeach
-            </div>
+            </ul>
         </div>
         
         <div class="mt-6 flex justify-end space-x-3">
@@ -91,3 +71,4 @@
         </div>
     </form>
 </x-card>
+</x-app-layout>

@@ -6,7 +6,6 @@ use App\Models\Announcement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class AnnouncementService
 {
@@ -14,7 +13,6 @@ class AnnouncementService
     {
         return DB::transaction(function () use ($data, $user) {
             $announcement = Announcement::create([
-                'id' => Str::uuid(),
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'category' => $data['category'] ?? 'general',
@@ -22,21 +20,9 @@ class AnnouncementService
                 'published_at' => $data['published_at'] ?? now(),
                 'expires_at' => $data['expires_at'] ?? null,
                 'audience' => $data['audience'] ?? 'all',
+                'attachments' => $data['attachments'] ?? null,
                 'created_by' => $user->id,
             ]);
-
-            // Handle attachments if any
-            if (isset($data['attachments']) && is_array($data['attachments'])) {
-                foreach ($data['attachments'] as $attachment) {
-                    $announcement->attachments()->create([
-                        'id' => Str::uuid(),
-                        'file_name' => $attachment['file_name'],
-                        'file_path' => $attachment['file_path'],
-                        'file_size' => $attachment['file_size'] ?? null,
-                        'file_type' => $attachment['file_type'] ?? null,
-                    ]);
-                }
-            }
 
             Log::info('Announcement created', [
                 'announcement_id' => $announcement->id,
@@ -64,7 +50,6 @@ class AnnouncementService
     public function deleteAnnouncement(Announcement $announcement): bool
     {
         return DB::transaction(function () use ($announcement) {
-            $announcement->attachments()->delete();
             $announcement->delete();
 
             Log::info('Announcement deleted', [
@@ -104,13 +89,11 @@ class AnnouncementService
 
             return $announcement->fresh();
         });
-
-        return $announcement->fresh();
     }
 
     public function getAnnouncements($filters = [])
     {
-        $query = Announcement::with(['createdBy', 'attachments']);
+        $query = Announcement::with('createdBy');
 
         if (isset($filters['category'])) {
             $query->where('category', $filters['category']);

@@ -19,16 +19,27 @@ class ResourceController extends Controller
         $this->borrowRequestService = $borrowRequestService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // $this->authorize('viewAny', Resource::class);
+        $search = trim($request->string('search')->toString());
+        $status = $request->string('status')->toString();
 
-        $resources = Resource::with('owner')
+        $resources = Resource::with(['owner', 'building', 'room'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('category', 'like', "%{$search}%");
+                });
+            })
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('resources.index', compact('resources'));
+        return view('resources.index', compact('resources', 'search', 'status'));
     }
+
 
     public function create()
     {
@@ -64,9 +75,6 @@ class ResourceController extends Controller
             $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
         }
 
-        // Convert boolean
-        $validated['available_for_borrowing'] = $request->has('available_for_borrowing');
-
         // The creator is always the owner
         $validated['owner_type'] = 'user';
         $validated['owner_id'] = Auth::id();
@@ -86,6 +94,21 @@ class ResourceController extends Controller
         return view('resources.show', compact('resource'));
     }
 
+    public function borrow(Request $request, Resource $resource)
+    {
+        $user = $request->user();
+        abort_unless($user->roles()->first()?->name === 'user' && $resource->owner_id !== $user->id, 403);
+
+        if (!$resource->canBeBorrowedBy($user)) {
+            return redirect()->route('resources.show', $resource)
+                ->with('error', 'This resource is currently unavailable to borrow.');
+        }
+
+        $resource->load('owner');
+
+        return view('resources.borrow', compact('resource'));
+    }
+
     public function edit(Resource $resource)
     {
         // $this->authorize('update', $resource);
@@ -101,12 +124,20 @@ class ResourceController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'condition' => 'required|in:excellent,good,fair,poor,damaged',
+            'condition' => 'required|in:New,Good,Fair,Poor,Damaged',
             'status' => 'required|in:available,borrowed,unavailable,maintenance',
             'lending_conditions' => 'nullable|string',
+            'photo' => 'nullable|image|max:10240',
             'building_id' => 'nullable|uuid|exists:buildings,id',
             'room_id' => 'nullable|uuid|exists:rooms,id',
         ]);
+
+        unset($validated['photo']);
+
+        if ($request->hasFile('photo')) {
+            abort_unless($resource->isUserOwned() && $resource->owner_id === $request->user()->id, 403);
+            $validated['photo'] = $request->file('photo')->store('resource-photos', 'public');
+        }
 
         $resource->update($validated);
 
@@ -153,7 +184,7 @@ class ResourceController extends Controller
                 Auth::user()
             );
 
-            return redirect()->route('resources.my-borrowing')
+            return redirect()->route('borrower.requests', ['category' => 'resources'])
                 ->with('success', 'Borrow request submitted successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -163,6 +194,12 @@ class ResourceController extends Controller
     public function showBorrowRequest(ResourceBorrowRequest $request)
     {
         $request->load(['resource', 'user']);
+
+        $user = Auth::user();
+        abort_unless($request->user_id === $user->id
+            || $request->canBeApprovedBy($user)
+            || $user->hasRole('school_officer'), 403);
+
         return view('resource-borrow-requests.show', compact('request'));
     }
 
@@ -180,12 +217,12 @@ class ResourceController extends Controller
         return view('resource-borrow-requests.edit', compact('request'));
     }
 
-    public function updateBorrowRequest(UpdateResourceBorrowRequest $request, ResourceBorrowRequest $borrowRequest)
+    public function updateBorrowRequest(UpdateResourceBorrowRequest $httpRequest, ResourceBorrowRequest $request)
     {
         try {
             $borrowRequest = $this->borrowRequestService->updateBorrowRequest(
-                $borrowRequest,
-                $request->validated(),
+                $request,
+                $httpRequest->validated(),
                 Auth::user()
             );
 
@@ -201,7 +238,7 @@ class ResourceController extends Controller
         try {
             $this->borrowRequestService->cancelBorrowRequest($request, Auth::user());
 
-            return redirect()->route('resources.my-borrowing')
+            return redirect()->route('borrower.requests', ['category' => 'resources'])
                 ->with('success', 'Borrow request cancelled successfully!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

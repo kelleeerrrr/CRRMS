@@ -48,8 +48,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resource Photo</label>
-                <input type="file" name="photo" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300">
+                <x-image-picker name="photo" label="Resource photo" />
             </div>
 
             <!-- 2. Quantity and Condition -->
@@ -106,11 +105,11 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available for Borrowing*</label>
                 <div class="flex items-center space-x-4">
                     <label class="flex items-center">
-                        <input type="radio" name="available_for_borrowing" value="1" required class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="available_for_borrowing" value="1" @checked(old('available_for_borrowing') === '1') required class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="available_for_borrowing" value="0" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="available_for_borrowing" value="0" @checked(old('available_for_borrowing') === '0') class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
                     </label>
                 </div>

@@ -50,6 +50,10 @@ class GateServiceProvider extends ServiceProvider
         
         // Service Request Gates
         Gate::define('manage-service-requests', fn ($user) => $user->hasPermission('manage_service_requests'));
+        Gate::define('review-borrower-issues', fn ($user) =>
+            $user->can('manage-service-requests')
+            || $user->hasRole('admin')
+            || $user->hasRole('super_admin'));
         Gate::define('view-service-requests', fn ($user) => $user->hasPermission('view_service_requests'));
         
         // Report Gates

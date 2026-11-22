@@ -7,6 +7,7 @@ use App\Models\CalendarEvent;
 use App\Models\User;
 use App\Services\CalendarService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class CalendarController extends Controller
 {
@@ -19,14 +20,13 @@ class CalendarController extends Controller
 
     public function index(Request $request)
     {
-        $filter = $request->get('filter', 'all');
-        $startDate = $request->get('start', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end', now()->endOfMonth()->format('Y-m-d'));
+        $filter = $request->string('filter', 'all')->toString();
+        $isOfficer = $request->user()->hasRole('school_officer');
+        $requestTypes = CalendarService::REQUEST_TYPES;
 
-        $events = $this->calendarService->getUserCalendarEvents(auth()->user(), $startDate, $endDate, $filter);
-
-        return view('calendar.index', compact('events', 'filter', 'startDate', 'endDate'));
+        return view('calendar.index', compact('filter', 'isOfficer', 'requestTypes'));
     }
+
 
     public function create()
     {
@@ -110,11 +110,17 @@ class CalendarController extends Controller
 
     public function calendarData(Request $request)
     {
-        $startDate = $request->get('start', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end', now()->endOfMonth()->format('Y-m-d'));
-        $filter = $request->get('filter', 'all');
+        $validated = $request->validate([
+            'start' => ['sometimes', 'date'],
+            'end' => ['sometimes', 'date', 'after:start'],
+            'filter' => ['sometimes', 'in:all,reservations,borrowing,lending,equipment,resources'],
+        ]);
+        $startDate = Carbon::parse($validated['start'] ?? now()->startOfMonth())->toDateString();
+        $endDate = Carbon::parse($validated['end'] ?? now()->startOfMonth()->addMonth())->toDateString();
+        $events = $this->calendarService->getUserCalendarEvents(
+            $request->user(), $startDate, $endDate, $validated['filter'] ?? 'all'
+        );
 
-        $events = $this->calendarService->getUserCalendarEvents(auth()->user(), $startDate, $endDate, $filter);
 
         return response()->json($events);
     }

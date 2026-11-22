@@ -12,7 +12,7 @@ class UpdateFacilityReservationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('view-facilities');
+        return $this->user()->can('update', $this->route('reservation'));
     }
 
     /**
@@ -27,12 +27,12 @@ class UpdateFacilityReservationRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_date' => ['sometimes', 'date', 'after:today'],
-            'end_date' => ['sometimes', 'date', 'after:start_date'],
+            'end_date' => ['sometimes', 'date', 'after_or_equal:start_date'],
             'start_time' => ['sometimes', 'date_format:H:i'],
             'end_time' => ['sometimes', 'date_format:H:i', 'after:start_time'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
-            'purpose' => ['nullable', 'string', 'max:255'],
-            'attendees_count' => ['nullable', 'integer', 'min:1'],
+            'reservee_name' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:20'],
         ];
     }
 }

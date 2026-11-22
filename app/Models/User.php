@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use \Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -17,8 +18,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $keyType = 'uuid';
     public $incrementing = false;

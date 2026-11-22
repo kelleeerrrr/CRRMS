@@ -4,11 +4,11 @@
     $unreadCount = $user ? $user->notifications()->where('is_read', false)->count() : 0;
 @endphp
 
-<header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+<header class="relative z-10 h-16 shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shadow-sm">
     <!-- Left Side -->
     <div class="flex items-center space-x-4">
         <!-- Mobile Menu Button -->
-        <button @click="$dispatch('toggle-sidebar')" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <button type="button" aria-label="Toggle navigation" aria-controls="app-sidebar" :aria-expanded="mobileSidebarOpen" @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <x-heroicon-o-bars-3 class="w-6 h-6" />
         </button>
 
@@ -30,9 +30,11 @@
             <x-heroicon-o-sun class="w-5 h-5 hidden dark:block" />
         </button>
 
+        <livewire:topbar-messages />
+
         <!-- Notifications -->
         <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
+            <button type="button" aria-label="Notifications" title="Notifications" :aria-expanded="open" @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
                 <x-heroicon-o-bell class="w-5 h-5" />
                 @if($unreadCount > 0)
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-danger-500 rounded-full ring-2 ring-white dark:ring-gray-800"></span>

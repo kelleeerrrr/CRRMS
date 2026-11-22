@@ -5,11 +5,16 @@
     </x-slot>
 
     <x-card class="max-w-2xl mx-auto">
-        <form method="POST" action="{{ route('resources.update', $resource) }}">
+        <form method="POST" action="{{ route('resources.update', $resource) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+            <x-input-error :messages="$errors->all()" class="mb-4" />
 
             <div class="space-y-6">
+                <div>
+                    <x-image-picker name="photo" :label="$resource->photo ? 'Replace resource photo' : 'Resource photo'" :saved="$resource->photo ? [$resource->photo] : []" />
+                </div>
+
                 <x-input
                     name="name"
                     type="text"
@@ -32,20 +37,21 @@
                     label="Description"
                     placeholder="Describe your resource..."
                     rows="3"
-                >{{ $resource->description }}</x-textarea>
+                    :value="$resource->description"
+                />
 
                 <x-select
                     name="condition"
                     label="Condition"
                     required
                     :options="[
-                        'excellent' => 'Excellent',
-                        'good' => 'Good',
-                        'fair' => 'Fair',
-                        'poor' => 'Poor',
-                        'damaged' => 'Damaged'
+                        'New' => 'New',
+                        'Good' => 'Good',
+                        'Fair' => 'Fair',
+                        'Poor' => 'Poor',
+                        'Damaged' => 'Damaged'
                     ]"
-                    :value="$resource->condition"
+                    :value="ucfirst($resource->condition === 'excellent' ? 'new' : $resource->condition)"
                 />
 
                 <x-select
@@ -66,7 +72,8 @@
                     label="Lending Conditions"
                     placeholder="Any conditions for borrowing this resource..."
                     rows="2"
-                >{{ $resource->lending_conditions }}</x-textarea>
+                    :value="$resource->lending_conditions"
+                />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-select
