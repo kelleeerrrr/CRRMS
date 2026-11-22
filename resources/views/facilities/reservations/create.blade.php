@@ -55,40 +55,6 @@
                     :value="old('end_date')"
                     :error="$errors->first('end_date')"
                 />
-
-                <x-input
-                    type="time"
-                    name="start_time"
-                    label="Start Time"
-                    required
-                    :value="old('start_time')"
-                    :error="$errors->first('start_time')"
-                />
-
-                <x-input
-                    type="time"
-                    name="end_time"
-                    label="End Time"
-                    required
-                    :value="old('end_time')"
-                    :error="$errors->first('end_time')"
-                />
-
-                <x-select
-                    name="organization_id"
-                    label="Organization (Optional)"
-                    :options="['' => 'Select an organization (optional)'] + \App\Models\Organization::pluck('name', 'id')->toArray()"
-                    :value="old('organization_id')"
-                />
-
-                <x-input
-                    type="number"
-                    name="attendees_count"
-                    label="Expected Attendees"
-                    placeholder="Number of attendees"
-                    :value="old('attendees_count')"
-                    :error="$errors->first('attendees_count')"
-                />
             </div>
 
             <div class="mt-6">
@@ -111,6 +77,15 @@
                     :value="old('description')"
                     :error="$errors->first('description')"
                 />
+            </div>
+
+            <div class="mt-6">
+                <label class="flex items-start">
+                    <input type="checkbox" name="agreement" required class="w-4 h-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                        I agree to follow the facility rules and regulations, and I understand that I am responsible for any damages caused during my reservation.
+                    </span>
+                </label>
             </div>
 
             <div class="mt-6 flex justify-end space-x-3">

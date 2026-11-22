@@ -67,7 +67,7 @@ class EquipmentBorrowRequestController extends Controller
     {
         $this->authorize('view', $borrowRequest);
 
-        $borrowRequest->load(['items.equipment', 'user', 'organization', 'approvedBy', 'cancelledBy', 'checkedOutBy', 'returnedBy']);
+        $borrowRequest->load(['items.equipment', 'user', 'organization', 'approvedBy', 'cancelledBy', 'releasedBy', 'returnedBy']);
 
         return view('equipment.borrow-requests.show', compact('borrowRequest'));
     }
@@ -80,10 +80,9 @@ class EquipmentBorrowRequestController extends Controller
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
-        $borrowRequest->load(['items.equipment', 'organization']);
-        $equipment = $this->borrowService->getAvailableEquipment(now(), now()->addDays(30));
+        $borrowRequest->load('items.equipment');
 
-        return view('equipment.borrow-requests.edit', compact('borrowRequest', 'equipment'));
+        return view('equipment.borrow-requests.edit', compact('borrowRequest'));
     }
 
     public function update(UpdateEquipmentBorrowRequest $request, EquipmentBorrowRequest $borrowRequest)
@@ -114,7 +113,7 @@ class EquipmentBorrowRequestController extends Controller
             $this->borrowService->cancelBorrowRequest($borrowRequest, Auth::user());
 
             return redirect()
-                ->route('equipment.borrow-requests.index')
+                ->route('borrower.requests', ['category' => 'equipment'])
                 ->with('success', 'Borrow request cancelled successfully.');
         } catch (\Exception $e) {
             return back()

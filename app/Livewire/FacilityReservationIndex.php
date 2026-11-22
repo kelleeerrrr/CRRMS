@@ -34,6 +34,16 @@ class FacilityReservationIndex extends Component
         }
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters()
     {
         $this->reset(['search', 'status']);

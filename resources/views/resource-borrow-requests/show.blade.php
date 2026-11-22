@@ -1,3 +1,8 @@
+@php
+    $isRequester = $request->user_id === auth()->id();
+    $fromApproved = request()->query('from') === 'approved';
+@endphp
+
 <x-app-layout>
     <x-slot name="title">Resource Borrow Request Details</x-slot>
 
@@ -8,8 +13,8 @@
                 <p class="text-gray-600 dark:text-gray-400">Request ID: {{ $request->id }}</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                    Back to My Requests
+                <a href="{{ $isRequester ? route($fromApproved ? 'borrower.approved' : 'borrower.requests', ['category' => request()->query('category', 'resources'), 'search' => request()->query('search')]) : route('resource-requests.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    {{ $isRequester ? ($fromApproved ? 'Back to Approved' : 'Back to Requests') : 'Back to Resource Requests' }}
                 </a>
                 @if($request->resource->owner && $request->resource->owner->id !== auth()->id())
                     <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
@@ -23,31 +28,37 @@
                         </button>
                     </form>
                 @endif
-                @if($request->user_id === auth()->id() && $request->status === 'pending')
+                @if($request->canBeApprovedBy(auth()->user()) && in_array($request->status, ['approved', 'in_use'], true))
+                    <form action="{{ route($request->status === 'approved' ? 'resource-requests.check-out' : 'resource-requests.return', $request) }}" method="POST">
+                        @csrf
+                        <x-button type="submit" variant="success">{{ $request->status === 'approved' ? 'Release Resource' : 'Record Return' }}</x-button>
+                    </form>
+                @endif
+                @if($isRequester && $request->status === 'pending')
                     <a href="{{ route('resource-borrow-requests.edit', $request) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                         Edit
                     </a>
                 @endif
-                @if(auth()->user()->can('approve', $request) && $request->status === 'pending')
+                @if(!$isRequester && $request->canBeApprovedBy(auth()->user()) && $request->status === 'pending')
                     <form action="{{ route('resource-requests.approve', $request) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                             Approve
                         </button>
                     </form>
-                    <form action="{{ route('resource-requests.decline', $request) }}" method="POST" class="inline">
+                    <form action="{{ route('resource-requests.decline', $request) }}" method="POST" class="inline" onsubmit="return confirm('Reject this pending resource request?')">
                         @csrf
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                            Reject
+                            Reject Request
                         </button>
                     </form>
                 @endif
-                @if($request->user_id === auth()->id() && in_array($request->status, ['pending', 'approved']))
-                    <form action="{{ route('resource-borrow-requests.destroy', $request) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this request?')">
+                @if($isRequester && $request->status === 'pending')
+                    <form action="{{ route('resource-borrow-requests.destroy', $request) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to withdraw your request?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                            Cancel
+                            Withdraw Request
                         </button>
                     </form>
                 @endif

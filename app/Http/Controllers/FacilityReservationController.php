@@ -61,7 +61,7 @@ class FacilityReservationController extends Controller
             \Log::info('Reservation created successfully', ['reservation_id' => $reservation->id]);
 
             return redirect()
-                ->route('my-lending.requests')
+                ->route('borrower.requests', ['category' => 'facilities'])
                 ->with('success', 'Reservation created successfully.');
         } catch (\Exception $e) {
             \Log::error('Reservation creation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
@@ -117,7 +117,7 @@ class FacilityReservationController extends Controller
             $this->reservationService->cancelReservation($reservation, Auth::user());
 
             return redirect()
-                ->route('facilities.reservations.index')
+                ->route('borrower.requests', ['category' => 'facilities'])
                 ->with('success', 'Reservation cancelled successfully.');
         } catch (\Exception $e) {
             return back()

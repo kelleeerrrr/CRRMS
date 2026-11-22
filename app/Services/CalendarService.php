@@ -5,9 +5,10 @@ namespace App\Services;
 use App\Models\CalendarEvent;
 use App\Models\EquipmentBorrowRequest;
 use App\Models\FacilityReservation;
-use App\Models\Resource;
 use App\Models\ResourceBorrowRequest;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -133,127 +134,132 @@ class CalendarService
         ];
     }
 
-    /**
-     * Get user-specific calendar events from various sources
-     */
-    public function getUserCalendarEvents(User $user, $startDate, $endDate, $filter = 'all')
+    public const REQUEST_TYPES = [
+        'reservations' => ['label' => 'Facilities', 'type' => 'Facility reservation', 'color' => '#1d4ed8'],
+        'equipment' => ['label' => 'Equipment', 'type' => 'Equipment borrowing', 'color' => '#7e22ce'],
+        'resources' => ['label' => 'Resources', 'type' => 'Resource borrowing', 'color' => '#047857'],
+    ];
+
+    public function getUserCalendarEvents(User $user, string $startDate, string $endDate, string $filter = 'all')
     {
+        $isOfficer = $user->hasRole('school_officer');
         $events = collect();
 
-        // Facility Reservations (user's approved reservations)
-        if ($filter === 'all' || $filter === 'reservations') {
-            $facilityReservations = FacilityReservation::where('user_id', $user->id)
-                ->whereIn('status', ['approved', 'pending'])
-                ->whereBetween('start_date', [$startDate, $endDate])
-                ->with('facility')
-                ->get()
-                ->map(function ($reservation) {
-                    return [
-                        'id' => $reservation->id,
-                        'title' => 'Facility: ' . $reservation->facility->name,
-                        'start' => $reservation->start_date->format('Y-m-d') . ($reservation->start_time ? 'T' . $reservation->start_time->format('H:i:s') : ''),
-                        'end' => $reservation->end_date->format('Y-m-d') . ($reservation->end_time ? 'T' . $reservation->end_time->format('H:i:s') : ''),
-                        'backgroundColor' => $reservation->status === 'approved' ? '#10b981' : '#f59e0b',
-                        'borderColor' => $reservation->status === 'approved' ? '#059669' : '#d97706',
-                        'extendedProps' => [
-                            'type' => 'facility_reservation',
-                            'status' => $reservation->status,
-                            'facility_name' => $reservation->facility->name,
-                            'start_time' => $reservation->start_time ? $reservation->start_time->format('g:i A') : null,
-                            'end_time' => $reservation->end_time ? $reservation->end_time->format('g:i A') : null,
-                            'description' => $reservation->description,
-                        ],
-                    ];
-                });
-            $events = $events->concat($facilityReservations);
+        if (in_array($filter, ['all', 'reservations'], true)) {
+            $query = $this->scheduledRequests(
+                FacilityReservation::with(['facility', 'user']),
+                $user, $isOfficer, ['approved', 'reserved', 'checked_in', 'completed'],
+                'start_date', 'end_date', $startDate, $endDate
+            );
+
+            $events = $events->concat($query->get()->map(function ($reservation) {
+                $start = $reservation->start_date;
+                $end = $reservation->end_date;
+                $timed = $reservation->start_time && $reservation->end_time;
+                if ($timed) {
+                    $start = $start->copy()->setTimeFrom($reservation->start_time);
+                    $end = $end->copy()->setTimeFrom($reservation->end_time);
+                }
+
+                return $this->requestEvent(
+                    'reservations', $reservation->id, $reservation->status, $start, $end,
+                    $reservation->facility?->name ?? 'Facility',
+                    $reservation->reservee_name ?: ($reservation->user?->name ?? 'Requester'),
+                    route('facilities.reservations.show', $reservation),
+                    $reservation->description, !$timed
+                );
+            }));
         }
 
-        // Equipment Borrowing (user's approved equipment borrow requests)
-        // Commented out - equipment_borrow_requests table doesn't have start_date column
-        // if ($filter === 'all' || $filter === 'borrowing') {
-        //     $equipmentBorrows = EquipmentBorrowRequest::where('user_id', $user->id)
-        //         ->whereIn('status', ['approved', 'pending'])
-        //         ->whereBetween('start_date', [$startDate, $endDate])
-        //         ->with('items.equipment')
-        //         ->get()
-        //         ->map(function ($borrow) {
-        //             $equipmentNames = $borrow->items->pluck('equipment.name')->implode(', ');
-        //             return [
-        //                 'id' => $borrow->id,
-        //                 'title' => 'Equipment: ' . $equipmentNames,
-        //                 'start' => $borrow->start_date->format('Y-m-d'),
-        //                 'end' => $borrow->end_date->format('Y-m-d'),
-        //                 'backgroundColor' => $borrow->status === 'approved' ? '#8b5cf6' : '#f59e0b',
-        //                 'borderColor' => $borrow->status === 'approved' ? '#7c3aed' : '#d97706',
-        //                 'extendedProps' => [
-        //                     'type' => 'equipment_borrow',
-        //                     'status' => $borrow->status,
-        //                     'equipment_names' => $equipmentNames,
-        //                     'purpose' => $borrow->purpose,
-        //                 ],
-        //             ];
-        //         });
-        //     $events = $events->concat($equipmentBorrows);
-        // }
+        if (in_array($filter, ['all', 'borrowing', 'equipment'], true)) {
+            $query = $this->scheduledRequests(
+                EquipmentBorrowRequest::with(['items.equipment', 'user']),
+                $user, $isOfficer, ['approved', 'in_use', 'returned', 'completed'],
+                'borrow_date', 'return_date', $startDate, $endDate
+            );
 
-        // Resource Borrowing (resources borrowed by the user)
-        if ($filter === 'all' || $filter === 'borrowing') {
-            $resourceBorrows = ResourceBorrowRequest::where('user_id', $user->id)
-                ->whereIn('status', ['approved', 'pending'])
-                ->whereBetween('start_date', [$startDate, $endDate])
-                ->with('resource')
-                ->get()
-                ->map(function ($borrow) {
-                    return [
-                        'id' => $borrow->id,
-                        'title' => 'Borrowed: ' . $borrow->resource->name,
-                        'start' => $borrow->start_date->format('Y-m-d'),
-                        'end' => $borrow->end_date->format('Y-m-d'),
-                        'backgroundColor' => $borrow->status === 'approved' ? '#3b82f6' : '#f59e0b',
-                        'borderColor' => $borrow->status === 'approved' ? '#2563eb' : '#d97706',
-                        'extendedProps' => [
-                            'type' => 'resource_borrow',
-                            'status' => $borrow->status,
-                            'resource_name' => $borrow->resource->name,
-                            'resource_condition' => $borrow->resource->condition,
-                            'purpose' => $borrow->purpose,
-                        ],
-                    ];
-                });
-            $events = $events->concat($resourceBorrows);
+            $events = $events->concat($query->get()->map(function ($borrow) {
+                $equipment = $borrow->items->map(fn ($item) => ($item->equipment?->name ?? 'Equipment')
+                    . ($item->quantity > 1 ? ' ×' . $item->quantity : ''))->implode(', ');
+
+                return $this->requestEvent(
+                    'equipment', $borrow->id, $borrow->status, $borrow->borrow_date, $borrow->return_date,
+                    $equipment ?: 'Equipment', $borrow->user?->name ?? 'Requester',
+                    route('equipment.borrow-requests.show', $borrow), $borrow->purpose
+                );
+            }));
         }
 
-        // Resource Lending (user's resources borrowed by others)
-        if ($filter === 'all' || $filter === 'lending') {
-            $userResourceIds = Resource::where('owner_type', 'user')
-                ->where('owner_id', $user->id)
-                ->pluck('id');
+        if (in_array($filter, ['all', 'borrowing', 'lending', 'resources'], true)) {
+            $ownedResources = fn (Builder $query) => $query->where('owner_type', 'user')->where('owner_id', $user->id);
+            $query = $this->scheduledRequests(
+                ResourceBorrowRequest::with(['resource', 'user']),
+                $user, $isOfficer, ['approved', 'in_use', 'returned'],
+                'start_date', 'end_date', $startDate, $endDate, scopeToUser: false
+            );
 
-            $resourceLending = ResourceBorrowRequest::whereIn('resource_id', $userResourceIds)
-                ->whereIn('status', ['approved', 'pending'])
-                ->whereBetween('start_date', [$startDate, $endDate])
-                ->with(['resource', 'user'])
-                ->get()
-                ->map(function ($borrow) {
-                    return [
-                        'id' => $borrow->id,
-                        'title' => 'Lent to: ' . $borrow->user->name,
-                        'start' => $borrow->start_date->format('Y-m-d'),
-                        'end' => $borrow->end_date->format('Y-m-d'),
-                        'backgroundColor' => $borrow->status === 'approved' ? '#ec4899' : '#f59e0b',
-                        'borderColor' => $borrow->status === 'approved' ? '#db2777' : '#d97706',
-                        'extendedProps' => [
-                            'type' => 'resource_lending',
-                            'status' => $borrow->status,
-                            'resource_name' => $borrow->resource->name,
-                            'borrower_name' => $borrow->user->name,
-                            'purpose' => $borrow->purpose,
-                        ],
-                    ];
+            if ($filter === 'lending') {
+                $query->whereHas('resource', $ownedResources);
+            } elseif (!$isOfficer) {
+                $query->where(function (Builder $query) use ($user, $filter, $ownedResources) {
+                    $query->where('user_id', $user->id);
+                    if ($filter === 'all') {
+                        $query->orWhereHas('resource', $ownedResources);
+                    }
                 });
-            $events = $events->concat($resourceLending);
+            }
+
+            $events = $events->concat($query->get()->map(fn ($borrow) => $this->requestEvent(
+                'resources', $borrow->id, $borrow->status, $borrow->start_date, $borrow->end_date,
+                $borrow->resource?->name ?? 'Resource',
+                $borrow->borrower_name ?: ($borrow->user?->name ?? 'Requester'),
+                route('resource-borrow-requests.show', $borrow), $borrow->purpose
+            )));
         }
 
         return $events;
+    }
+
+    private function scheduledRequests(
+        Builder $query, User $user, bool $isOfficer, array $statuses,
+        string $startColumn, string $endColumn, string $startDate, string $endDate,
+        bool $scopeToUser = true
+    ): Builder {
+        if (!$isOfficer) {
+            $statuses[] = 'pending';
+            if ($scopeToUser) {
+                $query->where('user_id', $user->id);
+            }
+        }
+
+        return $query->whereIn('status', $statuses)
+            ->where($startColumn, '<', $endDate)
+            ->where($endColumn, '>=', $startDate);
+    }
+
+    private function requestEvent(
+        string $category, string $id, string $status, Carbon $start, Carbon $end,
+        string $item, string $requester, string $detailsUrl, ?string $description, bool $allDay = true
+    ): array {
+        $type = self::REQUEST_TYPES[$category];
+
+        return [
+            'id' => "$category:$id",
+            'title' => "$requester · $item",
+            'start' => $allDay ? $start->toDateString() : $start->toDateTimeLocalString(),
+            'end' => $allDay ? $end->copy()->addDay()->toDateString() : $end->toDateTimeLocalString(),
+            'allDay' => $allDay,
+            'color' => $status === 'pending' ? '#92400e' : $type['color'],
+            'extendedProps' => [
+                'type' => $type['type'],
+                'item' => $item,
+                'requester' => $requester,
+                'status' => $status,
+                'period' => $start->format($allDay ? 'M j, Y' : 'M j, Y g:i A')
+                    . ' – ' . $end->format($allDay ? 'M j, Y' : 'M j, Y g:i A'),
+                'description' => $description,
+                'detailsUrl' => $detailsUrl,
+            ],
+        ];
     }
 }

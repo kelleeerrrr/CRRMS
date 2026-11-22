@@ -8,10 +8,10 @@
 
     <!-- Filters -->
     <x-card class="mb-6">
-        <form method="GET" action="{{ route('resource-requests.index') }}">
+        <form data-inventory-search method="GET" action="{{ route('resource-requests.index') }}">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-input
-                    type="text"
+                    type="search"
                     name="search"
                     :value="$search"
                     placeholder="Search by borrower or resource..."
@@ -20,6 +20,7 @@
                 
                 <x-select
                     name="status"
+                    placeholder=""
                     :value="$status"
                     label="Status"
                     :options="[
@@ -34,99 +35,106 @@
                 />
             </div>
             
-            <div class="mt-4 flex justify-end">
-                <x-button variant="ghost" type="submit">Filter</x-button>
-                <x-button variant="ghost" type="a" href="{{ route('resource-requests.index') }}">Reset</x-button>
+            <div class="mt-4 flex min-h-9 items-center gap-3">
+                <span data-inventory-search-status role="status" class="mr-auto text-sm font-medium text-blue-700 dark:text-blue-300"></span>
+                <noscript><x-button type="submit">Search</x-button></noscript>
+                <a class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700" href="{{ route('resource-requests.index') }}">Reset</a>
             </div>
         </form>
     </x-card>
 
-    <!-- Requests Table -->
-    @if($requests->count() > 0)
-        <x-card>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Requested</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Borrower</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Resource</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Borrow Date</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Return Date</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($requests as $request)
-                            <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->created_at->format('M d, Y H:i') }}
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold mr-2">
-                                            {{ strtoupper(substr($request->borrower_name ?? $request->user->name, 0, 1)) }}
+    <div data-inventory-results aria-live="polite" aria-busy="false">
+        <!-- Requests Table -->
+        @if($requests->count() > 0)
+            <x-card>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Requested</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Borrower</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Resource</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Quantity</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Borrow Date</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Return Date</th>
+                                <th class="text-left py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Status</th>
+                                <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                                <th scope="col" class="text-center py-2 px-3 text-xs font-medium text-gray-700 dark:text-gray-300">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($requests as $request)
+                                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
+                                        {{ $request->created_at->format('M d, Y H:i') }}
+                                    </td>
+                                    <td class="py-2 px-3">
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-semibold mr-2">
+                                                {{ strtoupper(substr($request->borrower_name ?? $request->user->name, 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-900 dark:text-white">{{ $request->borrower_name ?? $request->user->name }}</p>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ $request->email ?? $request->user->email }}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $request->borrower_name ?? $request->user->name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $request->email ?? $request->user->email }}</p>
+                                    </td>
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
+                                        {{ $request->resource->name }}
+                                    </td>
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
+                                        {{ $request->quantity }}
+                                    </td>
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
+                                        {{ $request->start_date ? $request->start_date->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td class="py-2 px-3 text-xs text-gray-900 dark:text-white">
+                                        {{ $request->end_date ? $request->end_date->format('M d, Y') : 'N/A' }}
+                                    </td>
+                                    <td class="py-2 px-3">
+                                        <x-status-badge :status="$request->status" />
+                                    </td>
+                                    <td class="py-2 px-3">
+                                        <div class="flex items-center justify-center gap-1">
+                                            @if($request->status === 'pending')
+                                                <form method="POST" action="{{ route('resource-requests.approve', $request) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-600 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/70">
+                                                        Approve
+                                                    </button>
+                                                </form>
+                                                <button onclick="showDeclineModal('{{ $request->id }}')" class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/70">
+                                                    Reject
+                                                </button>
+                                            @endif
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->resource->name }}
-                                </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->quantity }}
-                                </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->start_date ? $request->start_date->format('M d, Y') : 'N/A' }}
-                                </td>
-                                <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">
-                                    {{ $request->end_date ? $request->end_date->format('M d, Y') : 'N/A' }}
-                                </td>
-                                <td class="py-3 px-4">
-                                    <x-status-badge :status="$request->status" />
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-2">
-                                        <a href="#" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                                    </td>
+                                    <td class="py-2 px-3 text-center">
+                                        <a href="{{ route('resource-borrow-requests.show', $request) }}"
+                                            class="inline-flex items-center rounded-lg border border-blue-600 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-950">
                                             View
                                         </a>
-                                        @if($request->status === 'pending')
-                                            <form method="POST" action="{{ route('resource-requests.approve', $request) }}" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm">
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <button onclick="showDeclineModal('{{ $request->id }}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm ml-2">
-                                                Reject
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="mt-6">
-                {{ $requests->links() }}
-            </div>
-        </x-card>
-    @else
-        <x-card>
-            <div class="text-center py-12">
-                <x-heroicon-o-document class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No resource requests found</h3>
-                <p class="text-gray-600 dark:text-gray-400">There are no resource requests to display.</p>
-            </div>
-        </x-card>
-    @endif
+                <div class="mt-6">
+                    {{ $requests->links() }}
+                </div>
+            </x-card>
+        @else
+            <x-card>
+                <div class="text-center py-12">
+                    <x-heroicon-o-document class="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No resource requests found</h3>
+                    <p class="text-gray-600 dark:text-gray-400">There are no resource requests to display.</p>
+                </div>
+            </x-card>
+        @endif
+    </div>
 
     <!-- Decline Modal -->
     <div id="declineModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">

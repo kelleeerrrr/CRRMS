@@ -35,8 +35,8 @@ class EquipmentBorrowRequest extends Model
         'rejection_reason',
         'approved_by',
         'approved_at',
-        'checked_out_by',
-        'checked_out_at',
+        'released_by',
+        'released_at',
         'returned_by',
         'returned_at',
         'cancelled_by',
@@ -47,7 +47,7 @@ class EquipmentBorrowRequest extends Model
         'borrow_date' => 'date',
         'return_date' => 'date',
         'approved_at' => 'datetime',
-        'checked_out_at' => 'datetime',
+        'released_at' => 'datetime',
         'returned_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
@@ -67,9 +67,9 @@ class EquipmentBorrowRequest extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function checkedOutBy(): BelongsTo
+    public function releasedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'checked_out_by');
+        return $this->belongsTo(User::class, 'released_by');
     }
 
     public function returnedBy(): BelongsTo

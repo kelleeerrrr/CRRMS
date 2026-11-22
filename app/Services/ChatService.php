@@ -6,6 +6,8 @@ use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -308,7 +310,10 @@ class ChatService
             $query->where('type', $filters['type']);
         }
 
-        $conversations = $query->latest()->get();
+        // Sort by latest message timestamp
+        $conversations = $query->get()->sortByDesc(function ($conversation) {
+            return $conversation->messages->first()?->created_at ?? $conversation->updated_at;
+        })->values();
 
         // Load participant pivot data for current user
         foreach ($conversations as $conversation) {
@@ -328,23 +333,45 @@ class ChatService
             ->reverse();
     }
 
+    public function getLatestIncomingMessagesBySender(User $user): Collection
+    {
+        $rankedMessages = $this->incomingMessages($user)
+            ->select('messages.id')
+            ->selectRaw('ROW_NUMBER() OVER (
+                PARTITION BY messages.sender_id
+                ORDER BY messages.created_at DESC, messages.id DESC
+            ) AS sender_rank');
+
+        return Message::query()
+            ->select('messages.*')
+            ->joinSub($rankedMessages, 'ranked_messages', 'ranked_messages.id', '=', 'messages.id')
+            ->where('ranked_messages.sender_rank', 1)
+            ->with(['sender:id,name', 'conversation:id,name'])
+            ->latest('messages.created_at')
+            ->orderByDesc('messages.id')
+            ->limit(5)
+            ->get();
+    }
+
     public function getUnreadMessageCount(User $user): int
     {
+        return $this->incomingMessages($user)
+            ->where(function (Builder $query) {
+                $query->whereNull('conversation_participants.last_read_at')
+                    ->orWhereColumn('conversation_participants.last_read_at', '<', 'messages.created_at');
+            })
+            ->distinct('messages.conversation_id')
+            ->count('messages.conversation_id');
+    }
+
+    private function incomingMessages(User $user): Builder
+    {
         return Message::query()
-        ->whereHas('conversation', function ($q) use ($user) {
-            $q->whereHas('participants', function ($subQ) use ($user) {
-                $subQ->where('user_id', $user->id);
-            });
-        })
-        ->where('sender_id', '!=', $user->id)
-        ->whereHas('conversation.participants', function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-              ->where(function ($subQ) {
-                  $subQ->whereNull('last_read_at')
-                        ->orWhere('last_read_at', '<', \DB::raw('messages.created_at'));
-              });
-        })
-        ->distinct('conversation_id')
-        ->count('conversation_id');
+            ->select('messages.*')
+            ->join('conversation_participants', 'conversation_participants.conversation_id', '=', 'messages.conversation_id')
+            ->where('conversation_participants.user_id', $user->id)
+            ->where('messages.sender_id', '!=', $user->id)
+            ->whereNull('conversation_participants.left_at')
+            ->where('messages.is_deleted', false);
     }
 }

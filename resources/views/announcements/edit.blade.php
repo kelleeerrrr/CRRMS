@@ -1,11 +1,8 @@
-<x-slot name="title">Edit Announcement</x-slot>
-
-<x-slot name="breadcrumbs">
-    {{ [
+<x-app-layout :breadcrumbs="[
         ['title' => 'Announcements', 'url' => route('announcements.index')],
         ['title' => 'Edit', 'url' => null],
-    ] }}
-</x-slot>
+    ]">
+<x-slot name="title">Edit Announcement</x-slot>
 
 <x-slot name="header">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Announcement</h1>
@@ -100,3 +97,4 @@
         </div>
     </form>
 </x-card>
+</x-app-layout>

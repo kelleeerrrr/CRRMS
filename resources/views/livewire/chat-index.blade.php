@@ -63,9 +63,13 @@
                                         $otherParticipant = $chat->participants->where('id', '!=', auth()->id())->first();
                                     @endphp
                                     @if($otherParticipant)
-                                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                                            {{ strtoupper(substr($otherParticipant->name, 0, 1)) }}
-                                        </div>
+                                        @if($otherParticipant->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $otherParticipant->profile_photo_path) }}" alt="{{ $otherParticipant->name }}" class="w-12 h-12 rounded-full object-cover">
+                                        @else
+                                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                                                {{ strtoupper(substr($otherParticipant->name, 0, 1)) }}
+                                            </div>
+                                        @endif
                                     @endif
                                 @endif
                             </div>

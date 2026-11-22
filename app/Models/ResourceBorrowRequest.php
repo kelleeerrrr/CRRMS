@@ -77,12 +77,12 @@ class ResourceBorrowRequest extends Model
         $resource = $this->resource;
 
         // School Officer can approve school-owned resources
-        if ($resource->isSchoolOwned() && $user->can('approve_school_resource_requests')) {
+        if ($resource?->isSchoolOwned() && $user->hasPermission('approve_school_resource_requests')) {
             return true;
         }
 
         // Resource owner can approve their own resources
-        if ($resource->isUserOwned() && $resource->owner_id === $user->id) {
+        if ($resource?->isUserOwned() && $resource->owner_id === $user->id) {
             return true;
         }
 

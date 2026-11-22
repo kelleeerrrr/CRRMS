@@ -1,229 +1,142 @@
+@php
+    $filters = $isOfficer
+        ? ['all' => 'All'] + array_map(fn ($type) => $type['label'], $requestTypes)
+        : ['all' => 'All', 'reservations' => 'Reservations', 'borrowing' => 'Borrowing', 'lending' => 'Lending'];
+@endphp
+
 <x-app-layout>
-    <x-slot name="title">My Calendar</x-slot>
+    <x-slot name="title">{{ $isOfficer ? 'School Calendar' : 'My Calendar' }}</x-slot>
 
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Calendar</h1>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">View your reservations, borrowing, and lending activities</p>
-            </div>
-        </div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $isOfficer ? 'School Calendar' : 'My Calendar' }}</h1>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ $isOfficer ? 'See who booked or borrowed school facilities, equipment, and resources.' : 'View your reservations, borrowing, and lending activities.' }}
+        </p>
     </x-slot>
 
-    <!-- Filters -->
     <x-card class="mb-6">
-        <div class="flex items-center space-x-4">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
-            <div class="flex space-x-2">
-                <a href="{{ route('calendar.index', ['filter' => 'all']) }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    All
+        <nav aria-label="Calendar filters" class="flex flex-wrap gap-2">
+            @foreach($filters as $key => $label)
+                <a href="{{ route('calendar.index', ['filter' => $key]) }}" @if($filter === $key) aria-current="page" @endif
+                    class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {{ $filter === $key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600' }}">
+                    {{ $label }}
                 </a>
-                <a href="{{ route('calendar.index', ['filter' => 'reservations']) }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $filter === 'reservations' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Reservations
-                </a>
-                <a href="{{ route('calendar.index', ['filter' => 'borrowing']) }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $filter === 'borrowing' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Borrowing
-                </a>
-                <a href="{{ route('calendar.index', ['filter' => 'lending']) }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $filter === 'lending' ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Lending
-                </a>
-            </div>
-        </div>
+            @endforeach
+        </nav>
+
+        <ul aria-label="Calendar colors" class="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+            @foreach($requestTypes as $type)
+                <li class="rounded-full px-3 py-1 text-xs font-medium text-white" style="background-color: {{ $type['color'] }}">{{ $type['label'] }}</li>
+            @endforeach
+            @unless($isOfficer)
+                <li class="rounded-full bg-amber-800 px-3 py-1 text-xs font-medium text-white">Pending</li>
+            @endunless
+        </ul>
     </x-card>
 
-    <!-- Calendar -->
     <x-card>
+        <p id="calendar-error" role="status" class="mb-4 text-sm text-red-700 dark:text-red-300" hidden>Calendar requests couldn’t load. Try refreshing the page.</p>
         <div id="calendar"></div>
     </x-card>
 
-    <!-- Event Detail Modal -->
-    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 dark:text-white"></h3>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="modalContent" class="space-y-3"></div>
-            </div>
-        </div>
-    </div>
+    <dialog id="eventModal" aria-labelledby="modalTitle" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl bg-white p-6 text-gray-900 shadow-xl backdrop:bg-black/50 dark:bg-gray-800 dark:text-white">
+        <form method="dialog" class="mb-4 flex items-start justify-between gap-4">
+            <h2 id="modalTitle" class="text-lg font-semibold"></h2>
+            <button class="rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Close</button>
+        </form>
+        <dl id="modalContent" class="space-y-2 text-sm"></dl>
+        <a id="event-details-link" class="mt-4 inline-flex rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">View request details</a>
+    </dialog>
 
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 const calendarEl = document.getElementById('calendar');
-                const filter = '{{ $filter }}';
-                const startDate = '{{ $startDate }}';
-                const endDate = '{{ $endDate }}';
+                const errorMessage = document.getElementById('calendar-error');
+                const modal = document.getElementById('eventModal');
+                const filter = @js($filter);
+                const dataUrl = @js(route('calendar.data'));
+
+                if (!window.FullCalendar) {
+                    errorMessage.hidden = false;
+                    return;
+                }
 
                 const calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
                     headerToolbar: {
                         left: 'prev,next today',
                         center: 'title',
-                        right: 'dayGridMonth,timeGridWeek'
+                        right: 'dayGridMonth,timeGridWeek',
                     },
-                    events: function(info, successCallback, failureCallback) {
-                        fetch(`{{ route('calendar.data') }}?start=${info.startStr}&end=${info.endStr}&filter=${filter}`)
-                            .then(response => response.json())
-                            .then(data => successCallback(data))
-                            .catch(error => failureCallback(error));
+                    dayMaxEvents: 3,
+                    eventDisplay: 'block',
+                    eventClassNames: ['!rounded-full'],
+                    displayEventTime: false,
+                    events(info, successCallback, failureCallback) {
+                        const url = new URL(dataUrl);
+                        url.search = new URLSearchParams({
+                            start: info.startStr.slice(0, 10),
+                            end: info.endStr.slice(0, 10),
+                            filter,
+                        });
+                        fetch(url, { headers: { Accept: 'application/json' } })
+                            .then(response => {
+                                if (!response.ok || response.redirected) throw new Error('Unable to load calendar requests');
+                                return response.json();
+                            })
+                            .then(events => {
+                                errorMessage.hidden = true;
+                                successCallback(events);
+                            })
+                            .catch(error => {
+                                errorMessage.hidden = false;
+                                failureCallback(error);
+                            });
                     },
-                    eventClick: function(info) {
-                        const event = info.event;
+                    eventDidMount({ el, event }) {
+                        el.title = event.title;
+                    },
+                    eventClick({ event }) {
                         const props = event.extendedProps;
-                        
-                        let content = '';
-                        
-                        if (props.type === 'facility_reservation') {
-                            content = `
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Type:</span>
-                                    <span class="ml-2">Facility Reservation</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Facility:</span>
-                                    <span class="ml-2">${props.facility_name}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Date:</span>
-                                    <span class="ml-2">${event.startStr.split('T')[0]}</span>
-                                </div>
-                                ${props.start_time ? `
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Time:</span>
-                                    <span class="ml-2">${props.start_time} - ${props.end_time}</span>
-                                </div>
-                                ` : ''}
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Status:</span>
-                                    <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${props.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${props.status}</span>
-                                </div>
-                                ${props.description ? `
-                                <div class="text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Description:</span>
-                                    <p class="mt-1">${props.description}</p>
-                                </div>
-                                ` : ''}
-                            `;
-                        } else if (props.type === 'equipment_borrow') {
-                            content = `
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Type:</span>
-                                    <span class="ml-2">Equipment Borrowing</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Equipment:</span>
-                                    <span class="ml-2">${props.equipment_names}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Date:</span>
-                                    <span class="ml-2">${event.startStr} to ${event.endStr}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Status:</span>
-                                    <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${props.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${props.status}</span>
-                                </div>
-                                ${props.purpose ? `
-                                <div class="text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Purpose:</span>
-                                    <p class="mt-1">${props.purpose}</p>
-                                </div>
-                                ` : ''}
-                            `;
-                        } else if (props.type === 'resource_borrow') {
-                            content = `
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Type:</span>
-                                    <span class="ml-2">Resource Borrowing</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Resource:</span>
-                                    <span class="ml-2">${props.resource_name}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Condition:</span>
-                                    <span class="ml-2">${props.resource_condition}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Date:</span>
-                                    <span class="ml-2">${event.startStr} to ${event.endStr}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Status:</span>
-                                    <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${props.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${props.status}</span>
-                                </div>
-                                ${props.purpose ? `
-                                <div class="text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Purpose:</span>
-                                    <p class="mt-1">${props.purpose}</p>
-                                </div>
-                                ` : ''}
-                            `;
-                        } else if (props.type === 'resource_lending') {
-                            content = `
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Type:</span>
-                                    <span class="ml-2">Resource Lending</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Resource:</span>
-                                    <span class="ml-2">${props.resource_name}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Borrower:</span>
-                                    <span class="ml-2">${props.borrower_name}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Date:</span>
-                                    <span class="ml-2">${event.startStr} to ${event.endStr}</span>
-                                </div>
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Status:</span>
-                                    <span class="ml-2 px-2 py-1 rounded-full text-xs font-semibold ${props.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${props.status}</span>
-                                </div>
-                                ${props.purpose ? `
-                                <div class="text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium">Purpose:</span>
-                                    <p class="mt-1">${props.purpose}</p>
-                                </div>
-                                ` : ''}
-                            `;
-                        }
+                        const content = document.getElementById('modalContent');
+                        const fields = [
+                            ['Request type', props.type],
+                            ['Requester', props.requester],
+                            ['Item', props.item],
+                            ['Scheduled for', props.period],
+                            ['Status', props.status.replaceAll('_', ' ')],
+                            ['Notes', props.description],
+                        ];
 
                         document.getElementById('modalTitle').textContent = event.title;
-                        document.getElementById('modalContent').innerHTML = content;
-                        document.getElementById('eventModal').classList.remove('hidden');
-                        document.getElementById('eventModal').classList.add('flex');
+                        document.getElementById('event-details-link').href = props.detailsUrl;
+                        content.replaceChildren();
+                        for (const [label, value] of fields) {
+                            if (!value) continue;
+                            const row = document.createElement('div');
+                            const term = document.createElement('dt');
+                            const description = document.createElement('dd');
+                            term.className = 'font-semibold';
+                            description.className = 'break-words text-gray-600 dark:text-gray-300';
+                            term.textContent = label;
+                            description.textContent = value;
+                            row.append(term, description);
+                            content.append(row);
+                        }
+
+                        modal.showModal();
                     },
-                    eventColor: function(info) {
-                        return info.event.backgroundColor;
-                    }
                 });
 
                 calendar.render();
-            });
-
-            function closeModal() {
-                document.getElementById('eventModal').classList.add('hidden');
-                document.getElementById('eventModal').classList.remove('flex');
-            }
-
-            // Close modal when clicking outside
-            document.getElementById('eventModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal();
-                }
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) calendar.refetchEvents();
+                });
+                window.setInterval(() => {
+                    if (!document.hidden) calendar.refetchEvents();
+                }, 30000);
             });
         </script>
     @endpush

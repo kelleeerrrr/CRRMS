@@ -1,3 +1,8 @@
+@php
+    $isRequester = $reservation->user_id === auth()->id();
+    $fromApproved = request()->query('from') === 'approved';
+@endphp
+
 <x-app-layout>
 <x-slot name="title">Reservation Details</x-slot>
 
@@ -7,9 +12,9 @@
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $reservation->title }}</h1>
             <p class="text-gray-600 dark:text-gray-400">{{ $reservation->facility->name }}</p>
         </div>
-        <div class="flex items-center space-x-3">
-            <a href="{{ route('my-lending.requests') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                Back to My Requests
+        <div x-data class="flex items-center space-x-3">
+            <a href="{{ $isRequester ? route($fromApproved ? 'borrower.approved' : 'borrower.requests', ['category' => request()->query('category', 'facilities'), 'search' => request()->query('search')]) : route('facilities.reservations.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                {{ $isRequester ? ($fromApproved ? 'Back to Approved' : 'Back to Requests') : 'Back to Facility Reservations' }}
             </a>
             @if($reservation->facility->owner && $reservation->facility->owner->id !== auth()->id())
                 <form action="{{ route('chat.with-owner') }}" method="POST" class="inline">
@@ -23,28 +28,28 @@
                     </button>
                 </form>
             @endif
-            @if(auth()->user()->can('update', $reservation) && $reservation->status === 'pending')
+            @if(auth()->user()->can('update', $reservation))
                 <a href="{{ route('facilities.reservations.edit', $reservation) }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                     Edit
                 </a>
             @endif
-            @if(auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
+            @if(!$isRequester && auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
                 <form action="{{ route('facilities.reservations.approve', $reservation) }}" method="POST" class="inline">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         Approve
                     </button>
                 </form>
-                <button @click="openRejectModal = true" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    Reject
+                <button type="button" @click="$dispatch('open-modal', 'reject-modal')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Reject Request
                 </button>
             @endif
-            @if(auth()->user()->can('delete', $reservation) && in_array($reservation->status, ['pending', 'approved']))
-                <form action="{{ route('facilities.reservations.destroy', $reservation) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this reservation?')">
+            @if(auth()->user()->can('delete', $reservation))
+                <form action="{{ route('facilities.reservations.destroy', $reservation) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to withdraw your reservation?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                        Cancel
+                        Withdraw Reservation
                     </button>
                 </form>
             @endif
@@ -187,7 +192,7 @@
     <div class="space-y-6">
         <!-- Requester Info -->
         <x-card title="Requester">
-            <div class="flex items-center space-x-3">
+            <div x-data class="flex items-center space-x-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
                     {{ strtoupper(substr($reservation->user->name, 0, 1)) }}
                 </div>
@@ -218,6 +223,7 @@
     </div>
 </div>
 
+@if(!$isRequester && auth()->user()->can('approve', $reservation) && $reservation->status === 'pending')
 <!-- Reject Modal -->
 <x-modal name="reject-modal" :show="false">
     <form action="{{ route('facilities.reservations.reject', $reservation) }}" method="POST">
@@ -234,7 +240,7 @@
         </div>
         <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
             <button type="button" @click="$dispatch('close-modal', 'reject-modal')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                Cancel
+                Close
             </button>
             <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                 Reject Reservation
@@ -242,4 +248,5 @@
         </div>
     </form>
 </x-modal>
+@endif
 </x-app-layout>

@@ -56,6 +56,7 @@ class UserSeeder extends Seeder
                 'phone' => '1234567892',
                 'status' => 'active',
                 'role' => 'property_custodian',
+                'fallback_role' => 'school_officer',
             ],
             [
                 'id' => Str::uuid(),
@@ -66,6 +67,7 @@ class UserSeeder extends Seeder
                 'phone' => '1234567893',
                 'status' => 'active',
                 'role' => 'facilities_office',
+                'fallback_role' => 'school_officer',
             ],
             [
                 'id' => Str::uuid(),
@@ -76,6 +78,7 @@ class UserSeeder extends Seeder
                 'phone' => '1234567894',
                 'status' => 'active',
                 'role' => 'maintenance_staff',
+                'fallback_role' => 'school_officer',
             ],
             [
                 'id' => Str::uuid(),
@@ -86,6 +89,7 @@ class UserSeeder extends Seeder
                 'phone' => '1234567895',
                 'status' => 'active',
                 'role' => 'faculty',
+                'fallback_role' => 'user',
             ],
             [
                 'id' => Str::uuid(),
@@ -95,7 +99,7 @@ class UserSeeder extends Seeder
                 'student_id' => 'ST-2024-001',
                 'phone' => '1234567896',
                 'status' => 'active',
-                'role' => 'student',
+                'role' => 'user',
             ],
             [
                 'id' => Str::uuid(),
@@ -106,6 +110,7 @@ class UserSeeder extends Seeder
                 'phone' => '1234567897',
                 'status' => 'active',
                 'role' => 'organization_officer',
+                'fallback_role' => 'user',
             ],
             [
                 'id' => Str::uuid(),
@@ -116,18 +121,32 @@ class UserSeeder extends Seeder
                 'phone' => '1234567898',
                 'status' => 'active',
                 'role' => 'security',
+                'fallback_role' => 'school_officer',
             ],
         ];
 
         foreach ($users as $userData) {
-            $role = $userData['role'];
-            unset($userData['role']);
-            
+            $role = Role::where('name', $userData['role'])->first();
+
+            if (!$role && isset($userData['fallback_role'])) {
+                $role = Role::where('name', $userData['fallback_role'])->first();
+            }
+
+            if (!$role) {
+                $this->command->warn(
+                    "Skipping {$userData['email']}: role {$userData['role']} does not exist."
+                );
+                continue;
+            }
+
+            unset($userData['role'], $userData['fallback_role'], $userData['id']);
+
             $user = User::updateOrCreate(
                 ['email' => $userData['email']],
                 $userData
             );
-            $user->roles()->sync([Role::where('name', $role)->first()->id]);
+
+            $user->roles()->sync([$role->id]);
         }
     }
 }

@@ -39,9 +39,7 @@ class EquipmentBorrowRequestPolicy
      */
     public function update(User $user, EquipmentBorrowRequest $equipmentBorrowRequest): bool
     {
-        return $user->id === $equipmentBorrowRequest->user_id 
-            || $user->can('manage-equipment') 
-            || $user->can('super-admin');
+        return $user->id === $equipmentBorrowRequest->user_id && $equipmentBorrowRequest->status === 'pending';
     }
 
     /**
@@ -49,9 +47,7 @@ class EquipmentBorrowRequestPolicy
      */
     public function delete(User $user, EquipmentBorrowRequest $equipmentBorrowRequest): bool
     {
-        return $user->id === $equipmentBorrowRequest->user_id 
-            || $user->can('manage-equipment') 
-            || $user->can('super-admin');
+        return $user->id === $equipmentBorrowRequest->user_id && $equipmentBorrowRequest->status === 'pending';
     }
 
     /**

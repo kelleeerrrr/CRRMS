@@ -50,7 +50,16 @@
             />
         </div>
         
-        <div class="mt-4 flex justify-end">
+        <div class="mt-4 flex min-h-9 items-center justify-between gap-3">
+            <div role="status" class="text-sm font-medium text-blue-700 dark:text-blue-300">
+                <span wire:dirty wire:target="search,category,audience,is_pinned" style="display: none">
+                    <span class="inline-flex items-center gap-2">
+                        <x-heroicon-o-arrow-path class="h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />
+                        Searching…
+                    </span>
+                </span>
+                <span wire:loading wire:target="resetFilters">Resetting filters…</span>
+            </div>
             <x-button variant="ghost" wire:click="resetFilters">
                 Reset Filters
             </x-button>
@@ -100,10 +109,10 @@
                                     <x-heroicon-o-calendar class="w-4 h-4 mr-1" />
                                     {{ $announcement->published_at->format('M j, Y') }}
                                 </span>
-                                @if($announcement->attachments->count() > 0)
+                                @if(!empty($announcement->attachments))
                                     <span class="flex items-center">
                                         <x-heroicon-o-paperclip class="w-4 h-4 mr-1" />
-                                        {{ $announcement->attachments->count() }} attachment(s)
+                                        {{ count($announcement->attachments) }} attachment(s)
                                     </span>
                                 @endif
                             </div>

@@ -1,0 +1,45 @@
+name: Sync account branches
+
+on:
+  push:
+    branches:
+      - fix/school-officer-workflows
+      - fix/student-borrower-workflows
+      - fix/admin-workflows
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-account-branches
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge the latest account branch commits
+        shell: bash
+        run: |
+          branches=(fix/school-officer-workflows fix/student-borrower-workflows fix/admin-workflows)
+          git fetch origin "${branches[@]/#/refs/heads/}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # Skip tips already included in another account branch.
+          tips=$(git merge-base --independent "${branches[@]/#/origin/}")
+          mapfile -t commits <<< "$tips"
+          git switch --detach "${commits[0]}"
+          for commit in "${commits[@]:1}"; do
+            if ! git merge --no-edit "$commit"; then
+              echo "::error::Account branches have a merge conflict. Merge the conflicting branches locally, resolve the conflict, and push an account branch to rerun sync."
+              exit 1
+            fi
+          done
+
+          git push --atomic origin "${branches[@]/#/HEAD:refs/heads/}"
