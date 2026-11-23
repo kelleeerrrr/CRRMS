@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }" @keydown.window.prevent.ctrl.k="$dispatch('open-global-search')">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +17,7 @@
         <!-- Livewire Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <body class="font-sans antialiased" style="color: var(--text-primary);">
         <div id="app" class="flex h-screen overflow-hidden supports-[height:100dvh]:h-dvh" x-data="{ mobileSidebarOpen: false }" @keydown.escape.window="mobileSidebarOpen = false">
             <!-- Sidebar -->
             @include('components.sidebar')
@@ -28,7 +28,7 @@
                 @include('components.topbar')
 
                 <!-- Page Content -->
-                <main @class(['min-h-0 flex-1 overscroll-y-contain bg-gray-50 dark:bg-gray-900', 'overflow-hidden' => isset($fillHeight), 'overflow-y-auto' => !isset($fillHeight)])>
+                <main @class(['min-h-0 flex-1 overscroll-y-contain', 'overflow-hidden' => isset($fillHeight), 'overflow-y-auto' => !isset($fillHeight)])>
                     <div @class(['mx-auto max-w-7xl px-4 sm:px-6 lg:px-8', 'flex h-full flex-col pt-3 sm:pt-6' => isset($fillHeight), 'py-6' => !isset($fillHeight)])>
                         <!-- Breadcrumbs -->
                         @if(isset($breadcrumbs))

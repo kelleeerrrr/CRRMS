@@ -192,12 +192,12 @@
     }
 @endphp
 
-<aside id="app-sidebar" class="w-64 max-w-full shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 fixed inset-y-0 left-0 lg:static lg:translate-x-0 z-30 h-full shadow-lg lg:shadow-none" :class="{ 'translate-x-0': mobileSidebarOpen, '-translate-x-full': !mobileSidebarOpen }">
+<aside id="app-sidebar" class="w-64 max-w-full shrink-0 flex flex-col transition-all duration-300 fixed inset-y-0 left-0 lg:static lg:translate-x-0 z-30 h-full shadow-lg lg:shadow-none border-r" style="background: linear-gradient(180deg, var(--sidebar-bg-start), var(--sidebar-bg-end)); border-color: var(--sidebar-border);" :class="{ 'translate-x-0': mobileSidebarOpen, '-translate-x-full': !mobileSidebarOpen }">
     <!-- Logo -->
-    <div class="flex items-center justify-between h-16 shrink-0 px-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-600 to-primary-700">
+    <div class="flex items-center justify-between h-16 shrink-0 px-6 border-b" style="background: var(--brand-red); border-color: rgba(255,255,255,0.2);">
         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
-            <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <span class="text-primary-600 font-bold text-sm">CR</span>
+            <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <img src="{{ asset('crrms logo.png') }}" alt="CRRMS Logo" class="w-7 h-7 object-contain">
             </div>
             <span class="font-semibold text-lg text-white">CRRMS</span>
         </a>
@@ -212,22 +212,30 @@
             @if(isset($item['items']))
                 <!-- Dropdown Menu -->
                 <div x-data="{ open: true }">
-                    <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 group">
+                    <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group" style="color: var(--nav-group-label); background: transparent;" @mouseover="this.style.background='rgba(255,255,255,0.05)'" @mouseout="this.style.background='transparent'">
                         <div class="flex items-center space-x-3">
-                            <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
-                            <span class="whitespace-nowrap">{{ $item['title'] }}</span>
+                            <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 transition-colors" style="color: var(--nav-group-label);" />
+                            <span class="whitespace-nowrap uppercase text-xs font-semibold">{{ $item['title'] }}</span>
                         </div>
-                        <x-heroicon-o-chevron-down class="w-4 h-4 shrink-0 text-gray-400 transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" />
+                        <x-heroicon-o-chevron-down class="w-4 h-4 shrink-0 transition-transform duration-200" style="color: var(--nav-group-label);" x-bind:class="open ? 'rotate-180' : ''" />
                     </button>
                     <div x-show="open" x-collapse class="mt-1 space-y-1">
                         @foreach($item['items'] as $subItem)
                             @if($subItem['route'] === '#')
-                                <span class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-400 dark:text-gray-500 cursor-not-allowed">
+                                <span class="flex items-center px-3 py-2 text-sm rounded-lg cursor-not-allowed" style="color: var(--nav-text);">
                                     <span class="ml-8 whitespace-nowrap">{{ $subItem['title'] }}</span>
                                 </span>
                             @else
                                 <a href="{{ route($subItem['route']) }}"
-                                   class="flex items-center px-3 py-2 text-sm rounded-lg {{ $subItem['active'] ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-all duration-200">
+                                   class="flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ $subItem['active'] ? 'font-semibold' : '' }}"
+                                   @if($subItem['active'])
+                                       style="background: var(--nav-active-bg); color: var(--nav-active-text); border-radius: 12px;"
+                                   @else
+                                       style="color: var(--nav-text); background: transparent;"
+                                       @mouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                       @mouseout="this.style.background='transparent'"
+                                   @endif
+                                   >
                                     <span class="ml-8 whitespace-nowrap">{{ $subItem['title'] }}</span>
                                 </a>
                             @endif
@@ -237,8 +245,16 @@
             @else
                 <!-- Single Menu Item -->
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {{ $item['active'] ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-all duration-200 group">
-                    <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 {{ $item['active'] ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400' }} transition-colors" />
+                   class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group {{ $item['active'] ? 'font-semibold' : '' }}"
+                   @if($item['active'])
+                       style="background: var(--nav-active-bg); color: var(--nav-active-text); border-radius: 12px;"
+                   @else
+                       style="color: var(--nav-text); background: transparent;"
+                       @mouseover="this.style.background='rgba(255,255,255,0.05)'"
+                       @mouseout="this.style.background='transparent'"
+                   @endif
+                   >
+                    <x-heroicon-{{ $item['icon'] }} class="w-5 h-5 shrink-0 transition-colors" @if($item['active']) style="color: var(--nav-active-text);" @else style="color: var(--nav-text);" @endif />
                     <span class="ml-3 whitespace-nowrap">{{ $item['title'] }}</span>
                 </a>
             @endif
@@ -246,17 +262,17 @@
     </nav>
 
     <!-- User Section -->
-    <div class="shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50">
+    <div class="shrink-0 border-t p-4" style="border-color: rgba(255,255,255,0.2);">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold shadow-sm">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm" style="background: var(--brand-red);">
                 {{ strtoupper(substr($user->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $user->name }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $user->email }}</p>
+                <p class="text-sm font-medium truncate" style="color: #FFFFFF;">{{ $user->name }}</p>
+                <p class="text-xs truncate" style="color: #F6C9CD;">{{ $user->email }}</p>
             </div>
             @if(in_array($role, ['school_officer', 'admin', 'super_admin'], true))
-                <a href="{{ route('profile.edit') }}" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <a href="{{ route('profile.edit') }}" class="p-1.5 rounded-lg transition-colors" style="color: var(--nav-text);" @mouseover="this.style.background='rgba(255,255,255,0.1)'" @mouseout="this.style.background='transparent'">
                     <x-heroicon-o-wrench class="w-5 h-5" />
                 </a>
             @endif

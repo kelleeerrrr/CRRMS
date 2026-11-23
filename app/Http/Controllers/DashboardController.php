@@ -73,8 +73,7 @@ class DashboardController extends Controller
             'role' => 'school_officer',
             'stats' => $this->dashboardService->getSchoolOfficerStatistics(),
             'pendingRequests' => $this->dashboardService->getSchoolOfficerPendingRequests(),
-            'maintenance' => $this->dashboardService->getSchoolOfficerMaintenance(),
-            'resourceStatus' => $this->dashboardService->getSchoolOfficerResourceStatus(),
+            'charts' => $this->dashboardService->getSchoolOfficerCharts(),
         ];
     }
 
