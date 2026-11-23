@@ -5,15 +5,15 @@
     'padding' => 'p-6',
 ])
 
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 overflow-hidden transition-shadow duration-200 hover:shadow-medium']) }}>
+<div {{ $attributes->merge(['class' => 'rounded-2xl shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md']) }} style="background: var(--card-bg); border: 1px solid var(--card-border);">
     @if($title || $actions)
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+        <div class="flex items-center justify-between px-6 py-4 border-b rounded-t-2xl" style="border-color: var(--card-header-border); background: var(--card-header-bg);">
             <div>
                 @if($title)
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $title }}</h3>
+                    <h3 class="text-lg font-semibold" style="color: var(--card-header-text);">{{ $title }}</h3>
                 @endif
                 @if($subtitle)
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ $subtitle }}</p>
+                    <p class="text-sm mt-0.5" style="color: var(--text-secondary);">{{ $subtitle }}</p>
                 @endif
             </div>
             @if($actions)

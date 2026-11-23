@@ -25,11 +25,38 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const options = {
-            series: [{
+        const data = @js($data);
+
+        // Check if data is multi-series format (has 'categories' and 'series')
+        const isMultiSeries = data && data.categories && data.series;
+
+        // Check if data is x/y format (array of objects with x and y keys)
+        const isXYFormat = Array.isArray(data) && data.length > 0 && data[0].hasOwnProperty('x') && data[0].hasOwnProperty('y');
+
+        let series, categories, colors;
+
+        if (isMultiSeries) {
+            series = data.series;
+            categories = data.categories;
+            colors = ['#3B82F6', '#10B981'];
+        } else if (isXYFormat) {
+            series = [{
                 name: 'Count',
-                data: @js($data)
-            }],
+                data: data.map(item => item.y)
+            }];
+            categories = data.map(item => item.x);
+            colors = ['#3B82F6'];
+        } else {
+            series = [{
+                name: 'Count',
+                data: data
+            }];
+            categories = undefined;
+            colors = ['#3B82F6'];
+        }
+
+        const options = {
+            series: series,
             chart: {
                 type: 'bar',
                 height: {{ $height }},
@@ -41,8 +68,9 @@
                     columnWidth: '60%',
                 }
             },
-            colors: ['#3B82F6'],
+            colors: colors,
             xaxis: {
+                categories: categories,
                 labels: {
                     rotate: -45,
                 },

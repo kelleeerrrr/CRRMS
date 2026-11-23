@@ -16,10 +16,10 @@
 
 <div {{ $attributes->whereDoesntStartWith('wire:model') }}>
     @if($label)
-        <label for="{{ $id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label for="{{ $id }}" class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary);">
             {{ $label }}
             @if($required)
-                <span class="text-danger-500">*</span>
+                <span style="color: var(--badge-rejected-text);">*</span>
             @endif
         </label>
     @endif
@@ -31,7 +31,12 @@
         {{ $required ? 'required' : '' }}
         {{ $disabled ? 'disabled' : '' }}
         {{ $error ? 'aria-invalid="true"' : '' }}
-        class="w-full px-3.5 py-2.5 border {{ $error ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' : 'border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+        class="w-full px-3.5 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+        style="background: var(--input-bg); border-color: {{ $error ? 'var(--badge-rejected-text)' : 'var(--input-border)' }}; color: var(--text-primary);"
+        @if(!$error)
+            onfocus="this.style.borderColor='var(--input-focus-ring)'; this.style.boxShadow='0 0 0 3px var(--input-focus-ring)';"
+            onblur="this.style.borderColor='var(--input-border)'; this.style.boxShadow='none';"
+        @endif
     >
         @if($placeholder)
             <option value="">{{ $placeholder }}</option>
@@ -44,6 +49,6 @@
     </select>
 
     @if($error)
-        <p class="mt-1.5 text-sm text-danger-600 dark:text-danger-400">{{ $error }}</p>
+        <p class="mt-1.5 text-sm" style="color: var(--badge-rejected-text);">{{ $error }}</p>
     @endif
 </div>

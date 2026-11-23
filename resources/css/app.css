@@ -17,4 +17,157 @@
             scrollbar-color: var(--app-scrollbar-thumb) transparent;
         }
     }
+
+    /* Light Mode Theme Variables - BatStateU School Colors */
+    :root {
+        --bg-page-start: #FCE3E3;
+        --bg-page-mid: #FDEFEA;
+        --bg-page-end: #FFF7F2;
+        --text-primary: #111827;
+        --text-secondary: #4B5563;
+        --text-muted: #6B7280;
+        --text-nav: #374151;
+        --text-title: #6B1623;
+        --brand-maroon: #8B1D2C;
+        --brand-maroon-hover: #6B1623;
+        --brand-red: #C8102E;
+        --sidebar-bg-start: #8C1F2E;
+        --sidebar-bg-end: #5E1220;
+        --sidebar-border: #5E1220;
+        --nav-text: #FDE8EA;
+        --nav-group-label: #F3B6BB;
+        --nav-active-bg: #FFFFFF;
+        --nav-active-text: #8B1D2C;
+        --topbar-bg: #C8102E;
+        --card-bg: #FFF9F7;
+        --card-border: #E5E7EB;
+        --card-header-bg: #8B1D2C;
+        --card-header-text: #FFFFFF;
+        --card-header-border: #6B1623;
+        --input-bg: #FFFFFF;
+        --input-border: #E5E7EB;
+        --input-focus-ring: #C8102E;
+        --link-color: #8B1D2C;
+        
+        /* Status badge colors */
+        --badge-pending-bg: #FEF3C7;
+        --badge-pending-text: #92400E;
+        --badge-approved-bg: #DCFCE7;
+        --badge-approved-text: #166534;
+        --badge-rejected-bg: #FEE2E2;
+        --badge-rejected-text: #991B1B;
+        --badge-info-bg: #FFEDD5;
+        --badge-info-text: #9A3412;
+        
+        /* Stat card colors - alternating orange */
+        --stat-orange-light-bg: #FFF1E3;
+        --stat-orange-light-border: #F9D2AB;
+        --stat-orange-light-chip: #FFEDD5;
+        --stat-orange-deep-bg: #FFE8D1;
+        --stat-orange-deep-border: #FBC58F;
+        --stat-orange-deep-chip: #FED7AA;
+        --stat-icon-color: #C2410C;
+        
+        /* Row icon circle */
+        --row-icon-bg: #FFEDD5;
+        --row-icon-color: #C2410C;
+        
+        /* Message badge colors */
+        --message-badge-bg: white;
+        --message-badge-text: var(--brand-red);
+        
+        /* Section card colors for light mode */
+        --section-card-bg: var(--stat-orange-light-bg);
+        --section-card-border: var(--stat-orange-light-border);
+        --section-card-icon-bg: var(--stat-orange-light-chip);
+        --section-card-icon-color: var(--stat-icon-color);
+    }
+
+    /* Dark mode keeps existing Tailwind colors */
+    :root.dark {
+        --bg-page-start: #111827;
+        --bg-page-mid: #111827;
+        --bg-page-end: #111827;
+        --text-primary: #F9FAFB;
+        --text-secondary: #9CA3AF;
+        --text-muted: #6B7280;
+        --text-nav: #D1D5DB;
+        --brand-red: #DC2626;
+        --brand-red-hover: #B91C1C;
+        --sidebar-bg-start: #1F2937;
+        --sidebar-bg-end: #1F2937;
+        --sidebar-border: #374151;
+        --nav-active-bg: #374151;
+        --nav-active-text: #F9FAFB;
+        --topbar-bg: #1F2937;
+        --card-bg: #1F2937;
+        --card-border: #374151;
+        --card-header-bg: #374151;
+        --card-header-text: #F9FAFB;
+        --card-header-border: #374151;
+        --input-bg: #1F2937;
+        --input-border: #374151;
+        --input-focus-ring: #DC2626;
+        
+        --badge-pending-bg: #451A03;
+        --badge-pending-text: #FEF3C7;
+        --badge-approved-bg: #14532D;
+        --badge-approved-text: #DCFCE7;
+        --badge-rejected-bg: #7F1D1D;
+        --badge-rejected-text: #FEE2E2;
+        --badge-info-bg: #134E4A;
+        --badge-info-text: #CCFBF1;
+        
+        --stat-red-bg: #1F2937;
+        --stat-red-border: #374151;
+        --stat-red-chip: #374151;
+        --stat-red-icon: #F87171;
+        --stat-teal-bg: #1F2937;
+        --stat-teal-border: #374151;
+        --stat-teal-chip: #374151;
+        --stat-teal-icon: #2DD4BF;
+        --stat-green-bg: #1F2937;
+        --stat-green-border: #374151;
+        --stat-green-chip: #374151;
+        --stat-green-icon: #4ADE80;
+        --stat-yellow-bg: #1F2937;
+        --stat-yellow-border: #374151;
+        --stat-yellow-chip: #374151;
+        --stat-yellow-icon: #FBBF24;
+        --stat-orange-bg: #1F2937;
+        --stat-orange-border: #374151;
+        --stat-orange-chip: #374151;
+        --stat-orange-icon: #FB923C;
+        
+        /* Map orange-light/deep to original colors in dark mode */
+        --stat-orange-light-bg: #1F2937;
+        --stat-orange-light-border: #374151;
+        --stat-orange-light-chip: #374151;
+        --stat-orange-deep-bg: #1F2937;
+        --stat-orange-deep-border: #374151;
+        --stat-orange-deep-chip: #374151;
+        --stat-icon-color: #F87171;
+        
+        --row-icon-bg: #374151;
+        --row-icon-color: #F87171;
+        
+        /* Message badge colors */
+        --message-badge-bg: #DC2626;
+        --message-badge-text: white;
+        
+        /* Section card colors for dark mode */
+        --section-card-bg: #1F2937;
+        --section-card-border: #374151;
+        --section-card-icon-bg: #374151;
+        --section-card-icon-color: #F87171;
+    }
+
+    /* Apply page background gradient in light mode */
+    :root body {
+        background: linear-gradient(160deg, var(--bg-page-start) 0%, var(--bg-page-mid) 55%, var(--bg-page-end) 100%);
+    }
+
+    :root.dark body {
+        background: var(--bg-page-start);
+    }
 }

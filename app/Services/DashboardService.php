@@ -55,18 +55,11 @@ class DashboardService
 
     public function getSchoolOfficerStatistics(): array
     {
-        return Cache::remember('school_officer_stats', 300, function () {
-            return [
-                'pending_facility_reservations' => FacilityReservation::where('status', 'pending')->count(),
-                'pending_equipment_borrows' => EquipmentBorrowRequest::where('status', 'pending')->count(),
-                'pending_resource_requests' => \App\Models\ResourceBorrowRequest::where('status', 'pending')->count(),
-                'maintenance_requests' => MaintenanceRequest::whereIn('status', ['pending', 'in_progress'])->count(),
-                'available_facilities' => Facility::where('status', 'available')->count(),
-                'reserved_facilities' => FacilityReservation::where('status', 'approved')->count(),
-                'available_equipment' => Equipment::where('status', 'available')->count(),
-                'borrowed_equipment' => EquipmentBorrowRequest::where('status', 'in_use')->count(),
-            ];
-        });
+        return [
+            'pending_facility_reservations' => FacilityReservation::where('status', 'pending')->count(),
+            'pending_equipment_borrows' => EquipmentBorrowRequest::where('status', 'pending')->count(),
+            'pending_resource_requests' => \App\Models\ResourceBorrowRequest::where('status', 'pending')->count(),
+        ];
     }
 
     public function getPropertyCustodianStatistics(): array
@@ -344,6 +337,84 @@ class DashboardService
             'borrowed_equipment' => EquipmentBorrowRequest::where('status', 'in_use')->count(),
             'reserved_facilities' => FacilityReservation::where('status', 'approved')->where('start_date', '>=', today())->count(),
             'under_maintenance' => MaintenanceRequest::whereIn('status', ['pending', 'in_progress'])->count(),
+        ];
+    }
+
+    public function getSchoolOfficerCharts(): array
+    {
+        return [
+            'facilities' => Facility::select('facilities.name')
+                ->selectRaw('COUNT(facility_reservations.id) as reservation_count')
+                ->leftJoin('facility_reservations', 'facilities.id', '=', 'facility_reservations.facility_id')
+                ->where('facility_reservations.status', 'approved')
+                ->groupBy('facilities.id', 'facilities.name')
+                ->orderBy('reservation_count', 'desc')
+                ->take(10)
+                ->get()
+                ->map(fn($f) => ['x' => $f->name, 'y' => $f->reservation_count ?? 0])
+                ->toArray(),
+            'equipment' => [
+                'categories' => Equipment::select('name')
+                    ->orderBy('name')
+                    ->take(10)
+                    ->pluck('name')
+                    ->toArray(),
+                'series' => [
+                    [
+                        'name' => 'Available',
+                        'data' => Equipment::select('id', 'name', 'total_quantity')
+                            ->orderBy('name')
+                            ->take(10)
+                            ->get()
+                            ->map(function ($e) {
+                                $total = $e->total_quantity ?? 0;
+                                $borrowed = \App\Models\EquipmentBorrowItem::whereHas('borrowRequest', function ($query) {
+                                    $query->whereIn('status', ['approved', 'in_use']);
+                                })->where('equipment_id', $e->id)
+                                  ->selectRaw('SUM(quantity - COALESCE(returned_quantity, 0)) as net_borrowed')
+                                  ->value('net_borrowed') ?? 0;
+                                $reserved = \App\Models\EquipmentBorrowItem::whereHas('borrowRequest', function ($query) {
+                                    $query->where('status', 'approved')
+                                          ->where('borrow_date', '>', now());
+                                })->where('equipment_id', $e->id)
+                                  ->sum('quantity');
+                                return max(0, $total - $borrowed - $reserved);
+                            })
+                            ->toArray(),
+                    ],
+                    [
+                        'name' => 'Borrowed',
+                        'data' => Equipment::select('id', 'name', 'total_quantity')
+                            ->orderBy('name')
+                            ->take(10)
+                            ->get()
+                            ->map(function ($e) {
+                                $total = $e->total_quantity ?? 0;
+                                $borrowed = \App\Models\EquipmentBorrowItem::whereHas('borrowRequest', function ($query) {
+                                    $query->whereIn('status', ['approved', 'in_use']);
+                                })->where('equipment_id', $e->id)
+                                  ->selectRaw('SUM(quantity - COALESCE(returned_quantity, 0)) as net_borrowed')
+                                  ->value('net_borrowed') ?? 0;
+                                $reserved = \App\Models\EquipmentBorrowItem::whereHas('borrowRequest', function ($query) {
+                                    $query->where('status', 'approved')
+                                          ->where('borrow_date', '>', now());
+                                })->where('equipment_id', $e->id)
+                                  ->sum('quantity');
+                                $available = max(0, $total - $borrowed - $reserved);
+                                return max(0, $total - $available);
+                            })
+                            ->toArray(),
+                    ],
+                ],
+            ],
+            'resources' => \App\Models\Resource::select('name', 'available_quantity')
+                ->where('status', 'available')
+                ->where('available_quantity', '>', 0)
+                ->orderBy('name')
+                ->take(10)
+                ->get()
+                ->map(fn($r) => ['x' => $r->name, 'y' => $r->available_quantity])
+                ->toArray(),
         ];
     }
 
