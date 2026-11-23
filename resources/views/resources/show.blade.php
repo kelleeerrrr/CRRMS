@@ -1,9 +1,10 @@
 <x-app-layout>
+    <x-slot name="title">{{ $resource->name }}</x-slot>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $resource->name }}</h1>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Resource details</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Resource details</p>
             </div>
             <a href="{{ route('resources.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                 Back to Resources

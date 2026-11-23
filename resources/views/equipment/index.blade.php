@@ -127,7 +127,7 @@
                             @endif
                         </div>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
+                        <div class="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
                             @if(auth()->user()->hasRole('school_officer'))
                                 <a href="{{ route('equipment.edit', $item) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                                     Edit
@@ -139,9 +139,36 @@
                                     </button>
                                 </form>
                             @else
+                                <x-inventory-details
+                                    :title="$item->name"
+                                    :status="$item->availability_status ?? $item->status"
+                                    :description="$item->description"
+                                    :photos="$item->equipment_photo ? [$item->equipment_photo] : ($item->photos ?? [])"
+                                    :sections="[
+                                        'Equipment information' => [
+                                            'Equipment code or asset tag' => $item->equipment_code ?? $item->asset_number,
+                                            'Category' => $item->equipment_category ?? $item->category?->name,
+                                            'Condition' => $item->condition,
+                                            'Building' => $item->location_building,
+                                            'Room or storage' => $item->room_storage,
+                                        ],
+                                        'Availability and borrowing' => [
+                                            'Available for borrowing' => $item->available_for_borrowing === null ? null : ($item->available_for_borrowing ? 'Yes' : 'No'),
+                                            'Available quantity' => $item->available_quantity,
+                                            'Total quantity' => $item->total_quantity ?? 1,
+                                            'Maximum duration (days)' => $item->max_borrowing_duration,
+                                            'Advance booking (days)' => $item->advance_booking_requirement,
+                                            'Restrictions and instructions' => $item->borrowing_restrictions,
+                                        ],
+                                        'Management information' => [
+                                            'Responsible office or custodian' => $item->responsible_office,
+                                            'Additional notes' => $item->additional_notes,
+                                        ],
+                                    ]"
+                                />
                                 @if($item->isAvailableForBorrowing())
                                     <a href="{{ route('equipment.borrow-requests.create', ['equipment_id' => $item->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                                        Borrow This
+                                        Borrow
                                     </a>
                                 @else
                                     <span class="inline-flex items-center px-3 py-1.5 bg-gray-400 text-white text-sm rounded-lg cursor-not-allowed">

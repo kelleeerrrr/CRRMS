@@ -1,7 +1,7 @@
-<x-layouts.app>
+<x-guest-layout>
     <x-slot name="title">Page Not Found</x-slot>
 
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div class="px-2 py-4">
         <div class="max-w-md w-full text-center">
             <div class="mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 mb-6">
@@ -27,4 +27,4 @@
             </div>
         </div>
     </div>
-</x-layouts.app>
+</x-guest-layout>

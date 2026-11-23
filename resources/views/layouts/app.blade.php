@@ -18,18 +18,18 @@
         @livewireStyles
     </head>
     <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <div id="app" class="min-h-screen flex">
+        <div id="app" class="flex h-screen overflow-hidden supports-[height:100dvh]:h-dvh" x-data="{ mobileSidebarOpen: false }" @keydown.escape.window="mobileSidebarOpen = false">
             <!-- Sidebar -->
             @include('components.sidebar')
 
             <!-- Main Content -->
-            <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div class="flex min-h-0 min-w-0 flex-1 flex-col">
                 <!-- Top Navigation -->
                 @include('components.topbar')
 
                 <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-                    <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <main @class(['min-h-0 flex-1 overscroll-y-contain bg-gray-50 dark:bg-gray-900', 'overflow-hidden' => isset($fillHeight), 'overflow-y-auto' => !isset($fillHeight)])>
+                    <div @class(['mx-auto max-w-7xl px-4 sm:px-6 lg:px-8', 'flex h-full flex-col pt-3 sm:pt-6' => isset($fillHeight), 'py-6' => !isset($fillHeight)])>
                         <!-- Breadcrumbs -->
                         @if(isset($breadcrumbs))
                             @include('components.breadcrumbs', ['breadcrumbs' => $breadcrumbs])
@@ -37,7 +37,7 @@
 
                         <!-- Page Header -->
                         @isset($header)
-                            <header class="mb-6">
+                            <header @class(['mb-3 shrink-0 sm:mb-4' => isset($fillHeight), 'mb-6' => !isset($fillHeight)])>
                                 {{ $header }}
                             </header>
                         @endisset

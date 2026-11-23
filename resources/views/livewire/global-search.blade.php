@@ -1,10 +1,4 @@
 <div>
-    <!-- Search Trigger Button -->
-    <button wire:click="open" class="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-        <x-heroicon-o-magnifying-glass class="w-6 h-6" />
-        <span class="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full"></span>
-    </button>
-
     <!-- Search Modal -->
     @if($isOpen)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">

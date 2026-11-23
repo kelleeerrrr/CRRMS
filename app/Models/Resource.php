@@ -109,6 +109,14 @@ class Resource extends Model
         return $this->owner_type === 'school';
     }
 
+    public function canBeBorrowedBy(User $user): bool
+    {
+        return $this->owner_id !== $user->id
+            && $this->available_for_borrowing
+            && $this->status === 'available'
+            && $this->available_quantity > 0;
+    }
+
     public function isOwnedBy(User $user): bool
     {
         return $this->isUserOwned() && $this->owner_id === $user->id;

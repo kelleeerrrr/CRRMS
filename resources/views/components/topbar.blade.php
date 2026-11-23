@@ -4,11 +4,11 @@
     $unreadCount = $user ? $user->notifications()->where('is_read', false)->count() : 0;
 @endphp
 
-<header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+<header class="relative z-10 h-16 shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shadow-sm">
     <!-- Left Side -->
     <div class="flex items-center space-x-4">
         <!-- Mobile Menu Button -->
-        <button @click="$dispatch('toggle-sidebar')" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <button type="button" aria-label="Toggle navigation" aria-controls="app-sidebar" :aria-expanded="mobileSidebarOpen" @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <x-heroicon-o-bars-3 class="w-6 h-6" />
         </button>
 

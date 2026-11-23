@@ -30,6 +30,8 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+Route::get('/borrower', fn () => redirect()->route('dashboard'));
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -309,6 +311,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/my-lending', [ResourceController::class, 'myLending'])->name('my-lending');
         Route::get('/my-borrowing', [ResourceController::class, 'myBorrowing'])->name('my-borrowing');
         Route::get('/{resource}', [ResourceController::class, 'show'])->name('show');
+        Route::get('/{resource}/borrow', [ResourceController::class, 'borrow'])->name('borrow');
         Route::get('/{resource}/edit', [ResourceController::class, 'edit'])->name('edit');
         Route::put('/{resource}', [ResourceController::class, 'update'])->name('update');
         Route::post('/{resource}/toggle-availability', [ResourceController::class, 'toggleAvailability'])->name('toggle-availability');

@@ -26,9 +26,21 @@ class BorrowerIssueReportController extends Controller
             $query->where('user_id', $request->user()->id);
         }
 
-        $reports = $query->latest()->orderBy('id')->paginate(15);
+        $issueTypeFilter = $request->query('type');
+        if (!is_string($issueTypeFilter) || !array_key_exists($issueTypeFilter, BorrowerIssueReport::KINDS)) {
+            $issueTypeFilter = null;
+        }
 
-        return view('borrower.issues', compact('reports', 'reviewing'));
+        if ($issueTypeFilter !== null) {
+            $query->where('kind', $issueTypeFilter);
+        }
+
+        $reports = $query->latest()->orderBy('id')->paginate(15)
+            ->appends($issueTypeFilter === null ? [] : ['type' => $issueTypeFilter]);
+
+        $view = $request->header('X-Report-Results') === '1' ? 'borrower.issue-results' : 'borrower.issues';
+
+        return view($view, compact('reports', 'reviewing', 'issueTypeFilter'));
     }
 
     public function store(Request $request): RedirectResponse
