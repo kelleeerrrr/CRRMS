@@ -18,7 +18,7 @@ class AnnouncementController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['category', 'audience', 'is_pinned', 'search']);
+        $filters = $request->only(['category', 'is_pinned', 'search']);
         $announcements = $this->announcementService->getAnnouncements($filters);
         $statistics = $this->announcementService->getAnnouncementStatistics();
 
@@ -41,7 +41,7 @@ class AnnouncementController extends Controller
         if (!auth()->user()->hasRole('super_admin') && !auth()->user()->hasRole('admin') && !auth()->user()->hasRole('school_officer')) {
             abort(403, 'You do not have permission to create announcements.');
         }
-        
+
         try {
             $announcement = $this->announcementService->createAnnouncement(
                 $request->validated(),
@@ -49,7 +49,7 @@ class AnnouncementController extends Controller
             );
 
             return redirect()
-                ->route('announcements.show', $announcement)
+                ->route('announcements.index')
                 ->with('success', 'Announcement created successfully.');
         } catch (\Exception $e) {
             return back()
@@ -81,7 +81,7 @@ class AnnouncementController extends Controller
         if (!auth()->user()->hasRole('super_admin') && !auth()->user()->hasRole('admin') && !auth()->user()->hasRole('school_officer')) {
             abort(403, 'You do not have permission to update announcements.');
         }
-        
+
         $data = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string'],
@@ -89,14 +89,18 @@ class AnnouncementController extends Controller
             'is_pinned' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', 'after:published_at'],
-            'audience' => ['sometimes', 'in:all,students,faculty,staff,specific_departments,specific_organizations'],
+            'photo' => ['nullable', 'image', 'max:5120'],
         ]);
 
         try {
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $request->file('photo');
+            }
+
             $announcement = $this->announcementService->updateAnnouncement($announcement, $data);
 
             return redirect()
-                ->route('announcements.show', $announcement)
+                ->route('announcements.index')
                 ->with('success', 'Announcement updated successfully.');
         } catch (\Exception $e) {
             return back()
@@ -130,11 +134,12 @@ class AnnouncementController extends Controller
         if (!auth()->user()->hasRole('super_admin') && !auth()->user()->hasRole('admin') && !auth()->user()->hasRole('school_officer')) {
             abort(403, 'You do not have permission to pin announcements.');
         }
-        
+
         try {
             $announcement = $this->announcementService->pinAnnouncement($announcement);
 
-            return back()
+            return redirect()
+                ->route('announcements.index')
                 ->with('success', 'Announcement pinned successfully.');
         } catch (\Exception $e) {
             return back()
@@ -148,11 +153,12 @@ class AnnouncementController extends Controller
         if (!auth()->user()->hasRole('super_admin') && !auth()->user()->hasRole('admin') && !auth()->user()->hasRole('school_officer')) {
             abort(403, 'You do not have permission to unpin announcements.');
         }
-        
+
         try {
             $announcement = $this->announcementService->unpinAnnouncement($announcement);
 
-            return back()
+            return redirect()
+                ->route('announcements.index')
                 ->with('success', 'Announcement unpinned successfully.');
         } catch (\Exception $e) {
             return back()

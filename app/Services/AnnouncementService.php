@@ -12,6 +12,11 @@ class AnnouncementService
     public function createAnnouncement(array $data, User $user): Announcement
     {
         return DB::transaction(function () use ($data, $user) {
+            $photoPath = null;
+            if (isset($data['photo'])) {
+                $photoPath = $data['photo']->store('announcements', 'public');
+            }
+
             $announcement = Announcement::create([
                 'title' => $data['title'],
                 'content' => $data['content'],
@@ -19,7 +24,7 @@ class AnnouncementService
                 'is_pinned' => $data['is_pinned'] ?? false,
                 'published_at' => $data['published_at'] ?? now(),
                 'expires_at' => $data['expires_at'] ?? null,
-                'audience' => $data['audience'] ?? 'all',
+                'photo' => $photoPath,
                 'attachments' => $data['attachments'] ?? null,
                 'created_by' => $user->id,
             ]);
@@ -37,6 +42,15 @@ class AnnouncementService
     public function updateAnnouncement(Announcement $announcement, array $data): Announcement
     {
         return DB::transaction(function () use ($announcement, $data) {
+            // Handle photo upload
+            if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
+                // Delete old photo if exists
+                if ($announcement->photo) {
+                    \Storage::disk('public')->delete($announcement->photo);
+                }
+                $data['photo'] = $data['photo']->store('announcements', 'public');
+            }
+
             $announcement->update($data);
 
             Log::info('Announcement updated', [
@@ -99,10 +113,6 @@ class AnnouncementService
             $query->where('category', $filters['category']);
         }
 
-        if (isset($filters['audience'])) {
-            $query->where('audience', $filters['audience']);
-        }
-
         if (isset($filters['is_pinned'])) {
             $query->where('is_pinned', $filters['is_pinned']);
         }
@@ -128,15 +138,18 @@ class AnnouncementService
 
     public function getAnnouncementStatistics(): array
     {
+        $publishedQuery = Announcement::where('published_at', '<=', now())
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
+
         return [
-            'total' => Announcement::count(),
-            'pinned' => Announcement::where('is_pinned', true)->count(),
-            'active' => Announcement::where('published_at', '<=', now())
-                ->where(function ($q) {
-                    $q->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })->count(),
-            'expired' => Announcement::where('expires_at', '<', now())->count(),
+            'total' => $publishedQuery->count(),
+            'pinned' => $publishedQuery->where('is_pinned', true)->count(),
+            'active' => $publishedQuery->count(),
+            'expired' => Announcement::where('published_at', '<=', now())
+                ->where('expires_at', '<', now())->count(),
         ];
     }
 }

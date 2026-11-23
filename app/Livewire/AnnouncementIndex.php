@@ -13,16 +13,12 @@ class AnnouncementIndex extends Component
 
     public $search = '';
     public $category = '';
-    public $audience = '';
-    public $is_pinned = '';
     public $sortField = 'published_at';
     public $sortDirection = 'desc';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'category' => ['except' => ''],
-        'audience' => ['except' => ''],
-        'is_pinned' => ['except' => ''],
         'sortField' => ['except' => 'published_at'],
         'sortDirection' => ['except' => 'desc'],
     ];
@@ -39,12 +35,11 @@ class AnnouncementIndex extends Component
 
     public function resetFilters()
     {
-        $this->reset(['search', 'category', 'audience', 'is_pinned']);
+        $this->reset(['search', 'category']);
         $this->resetPage();
     }
 
-    #[Computed]
-    public function announcements()
+    public function render()
     {
         $query = Announcement::with('createdBy');
 
@@ -59,14 +54,6 @@ class AnnouncementIndex extends Component
             $query->where('category', $this->category);
         }
 
-        if ($this->audience) {
-            $query->where('audience', $this->audience);
-        }
-
-        if ($this->is_pinned !== '') {
-            $query->where('is_pinned', $this->is_pinned);
-        }
-
         // Only show published announcements
         $query->where('published_at', '<=', now())
             ->where(function ($q) {
@@ -74,15 +61,14 @@ class AnnouncementIndex extends Component
                     ->orWhere('expires_at', '>', now());
             });
 
-        $query->orderBy($this->sortField, $this->sortDirection);
+        // Always show pinned announcements first
+        $query->orderBy('is_pinned', 'desc')
+              ->orderBy($this->sortField, $this->sortDirection);
 
-        return $query->paginate(20);
-    }
+        $announcements = $query->paginate(20);
 
-    public function render()
-    {
         return view('livewire.announcement-index', [
-            'announcements' => $this->announcements,
+            'announcements' => $announcements,
         ]);
     }
 }

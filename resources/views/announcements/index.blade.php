@@ -17,7 +17,7 @@
     </x-slot>
 
 <!-- Statistics Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <x-card>
         <div class="flex items-center justify-between">
             <div>
@@ -38,18 +38,6 @@
             </div>
             <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
                 <x-heroicon-o-pin class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-        </div>
-    </x-card>
-    
-    <x-card>
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Active</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $statistics['active'] }}</p>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                <x-heroicon-o-check-circle class="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
         </div>
     </x-card>

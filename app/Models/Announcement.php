@@ -18,6 +18,7 @@ class Announcement extends Model
         'audience',
         'audience_ids',
         'attachments',
+        'photo',
         'is_pinned',
         'published_at',
         'expires_at',

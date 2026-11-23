@@ -29,7 +29,7 @@ class StoreAnnouncement extends FormRequest
             'is_pinned' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', 'after:published_at'],
-            'audience' => ['sometimes', 'in:all,students,faculty,staff,specific_departments,specific_organizations'],
+            'photo' => ['nullable', 'image', 'max:5120'],
             'attachments' => ['nullable', 'array'],
             'attachments.*.file_name' => ['required', 'string'],
             'attachments.*.file_path' => ['required', 'string'],

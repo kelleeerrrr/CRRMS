@@ -42,6 +42,11 @@
         <!-- Announcement Details -->
         <x-card>
             <div class="space-y-4">
+                @if($announcement->photo)
+                    <div class="mb-4">
+                        <img src="{{ asset('storage/' . $announcement->photo) }}" alt="Announcement photo" class="w-full h-auto rounded-lg">
+                    </div>
+                @endif
                 <div class="flex items-center justify-between mb-4">
                     @if($announcement->category === 'urgent')
                         <span class="px-3 py-1 text-sm font-semibold text-red-800 bg-red-100 rounded-full dark:bg-red-900 dark:text-red-100">Urgent</span>
@@ -80,10 +85,6 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $announcement->expires_at->format('F j, Y, g:i A') }}</p>
                         </div>
                     @endif
-                    <div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Target Audience</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ucfirst($announcement->audience) }}</p>
-                    </div>
                 </div>
             </div>
         </x-card>
@@ -123,18 +124,6 @@
             </div>
         </x-card>
 
-        <!-- Target Audience Info -->
-        <x-card title="Target Audience">
-            <div class="flex items-center">
-                <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4">
-                    <x-heroicon-o-users class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ucfirst($announcement->audience) }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Target audience</p>
-                </div>
-            </div>
-        </x-card>
     </div>
 </div>
 </x-app-layout>

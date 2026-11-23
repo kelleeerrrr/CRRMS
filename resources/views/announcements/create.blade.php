@@ -10,7 +10,7 @@
 </x-slot>
 
 <x-card>
-    <form action="{{ route('announcements.store') }}" method="POST">
+    <form action="{{ route('announcements.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         
         <div class="space-y-6">
@@ -47,20 +47,14 @@
                 :error="$errors->first('category')"
             />
             
-            <x-select
-                name="audience"
-                label="Target Audience"
-                :options="[
-                    'all' => 'All Users',
-                    'students' => 'Students',
-                    'faculty' => 'Faculty',
-                    'staff' => 'Staff',
-                    'specific_departments' => 'Specific Departments',
-                    'specific_organizations' => 'Specific Organizations'
-                ]"
-                :value="old('audience', 'all')"
-                :error="$errors->first('audience')"
-            />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo (Optional)</label>
+                <input type="file" name="photo" accept="image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-blue-300">
+                @error('photo')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-input
